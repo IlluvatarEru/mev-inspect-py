@@ -5,13 +5,12 @@ Revises: 5c5375de15fd
 Create Date: 2022-12-12 02:46:57.125040
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'a5a44a7c854d'
-down_revision = '5c5375de15fd'
+revision = "a5a44a7c854d"
+down_revision = "5c5375de15fd"
 branch_labels = None
 depends_on = None
 
