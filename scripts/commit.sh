@@ -7,5 +7,5 @@ branch="${branch//\_/ }"
 issue_number="${branch//Issue\-/}"
 title=$( cut -d ' ' -f 2- <<< "$issue_number" )
 issue_number=$( cut -d ' ' -f 1 <<< "$issue_number" )
-commit_message="Closes #$issue_number $title"
+commit_message="feat: $title Closes #$issue_number"
 git commit -sam "$commit_message"
