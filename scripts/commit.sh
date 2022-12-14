@@ -8,4 +8,4 @@ issue_number="${branch//Issue\-/}"
 title=$( cut -d ' ' -f 2- <<< "$issue_number" )
 issue_number=$( cut -d ' ' -f 1 <<< "$issue_number" )
 commit_message="Closes #$issue_number $title"
-git commit -m "$commit_message"
+git commit -sam "$commit_message"
