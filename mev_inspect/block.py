@@ -133,12 +133,11 @@ reserves: Dict[str, Tuple[str, str]] = dict()
 
 
 async def get_classified_traces_from_events(
-    w3: Web3, after_block: int, before_block: int, trace_db_session
+    w3: Web3, after_block: int, before_block: int
 ):
     base_provider = w3.provider
     start = after_block
     stride = 300
-    print(trace_db_session)
     while start < before_block:
         begin = start
         end = start + stride if (start + stride) < before_block else before_block - 1

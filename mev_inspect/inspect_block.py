@@ -1,12 +1,10 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from sqlalchemy import orm
 from web3 import Web3
 
 from mev_inspect.arbitrages import get_arbitrages
 from mev_inspect.block import get_classified_traces_from_events
-from mev_inspect.classifiers.trace import TraceClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -14,43 +12,28 @@ TRAILING_ZEROS = "000000000000000000000000"
 
 
 async def inspect_block(
-    inspect_db_session: orm.Session,
     w3: Web3,
-    trace_classifier: TraceClassifier,
     block_number: int,
-    trace_db_session: Optional[orm.Session],
-    should_write_classified_traces: bool = True,
 ):
     await inspect_many_blocks(
-        inspect_db_session,
         w3,
-        trace_classifier,
         block_number,
         block_number + 1,
-        trace_db_session,
-        should_write_classified_traces,
     )
 
 
 async def inspect_many_blocks(
-    inspect_db_session: orm.Session,
     w3: Web3,
-    trace_classifier: TraceClassifier,
     after_block_number: int,
     before_block_number: int,
-    trace_db_session: Optional[orm.Session],
-    should_write_classified_traces: bool = True,
 ):
     count = 0
     arbitrages_payload = []
     liquidations_payload = []
 
     profits = []
-    print(inspect_db_session)
-    print(trace_classifier)
-    print(should_write_classified_traces)
     async for swaps, liquidations in get_classified_traces_from_events(
-        w3, after_block_number, before_block_number, trace_db_session
+        w3, after_block_number, before_block_number
     ):
         arbitrages = get_arbitrages(swaps)
 
@@ -99,7 +82,7 @@ async def inspect_many_blocks(
                 )
 
     if count > 0:
-        print("writing profits")
+        print("writing profits of {0} mev transactions".format(count))
         # @TODO: Write profits to DB
         arbitrages_payload = []
         liquidations_payload = []

@@ -37,14 +37,9 @@ def cli():
 @click.option("--rpc", default=lambda: os.environ.get(RPC_URL_ENV, ""))
 @coro
 async def inspect_block_command(block_number: int, rpc: str):
-    inspect_db_session = get_inspect_session()
-    trace_db_session = get_trace_session()
-
     inspector = MEVInspector(rpc)
 
     await inspector.inspect_single_block(
-        inspect_db_session=inspect_db_session,
-        trace_db_session=trace_db_session,
         block=block_number,
     )
 
@@ -86,17 +81,12 @@ async def inspect_many_blocks_command(
     max_concurrency: int,
     request_timeout: int,
 ):
-    inspect_db_session = get_inspect_session()
-    trace_db_session = get_trace_session()
-
     inspector = MEVInspector(
         rpc,
         max_concurrency=max_concurrency,
         request_timeout=request_timeout,
     )
     await inspector.inspect_many_blocks(
-        inspect_db_session=inspect_db_session,
-        trace_db_session=trace_db_session,
         after_block=after_block,
         before_block=before_block,
     )
@@ -114,7 +104,7 @@ def enqueue_block_list_command():
 
     for block_string in fileinput.input():
         block = int(block_string)
-        logger.info(f"Sending {block} to {block+1}")
+        logger.info(f"Sending {block} to {block + 1}")
         inspect_many_blocks_actor.send(block, block + 1)
 
 
