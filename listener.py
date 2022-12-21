@@ -90,6 +90,7 @@ async def inspect_next_block(
         logger.info(f"Writing block: {block_number}")
 
         await inspector.inspect_single_block(
+            inspect_db_session=inspect_db_session,
             block=block_number,
         )
 

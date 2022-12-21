@@ -19,12 +19,14 @@ def inspect_many_blocks_task(
     after_block: int,
     before_block: int,
 ):
-    asyncio.run(
-        InspectorMiddleware.get_inspector().inspect_many_blocks(
-            after_block=after_block,
-            before_block=before_block,
+    with _session_scope(DbMiddleware.get_inspect_sessionmaker()) as inspect_db_session:
+        asyncio.run(
+            InspectorMiddleware.get_inspector().inspect_many_blocks(
+                inspect_db_session=inspect_db_session,
+                after_block=after_block,
+                before_block=before_block,
+            )
         )
-    )
 
 
 def realtime_export_task(block_number: int):

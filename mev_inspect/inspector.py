@@ -49,15 +49,18 @@ class MEVInspector:
 
     async def inspect_single_block(
         self,
+        inspect_db_session: orm.Session,
         block: int,
     ):
         return await inspect_block(
+            inspect_db_session,
             self.w3,
             block,
         )
 
     async def inspect_many_blocks(
         self,
+        inspect_db_session: orm.Session,
         after_block: int,
         before_block: int,
         block_batch_size: int = 10,
@@ -70,6 +73,7 @@ class MEVInspector:
             tasks.append(
                 asyncio.ensure_future(
                     self.safe_inspect_many_blocks(
+                        inspect_db_session=inspect_db_session,
                         after_block_number=batch_after_block,
                         before_block_number=batch_before_block,
                     )
@@ -87,11 +91,13 @@ class MEVInspector:
 
     async def safe_inspect_many_blocks(
         self,
+        inspect_db_session: orm.Session,
         after_block_number: int,
         before_block_number: int,
     ):
         async with self.max_concurrency:
             return await inspect_many_blocks(
+                inspect_db_session,
                 self.w3,
                 after_block_number,
                 before_block_number,

@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict
 
+from sqlalchemy import orm
 from web3 import Web3
 
 from mev_inspect.arbitrages import get_arbitrages
@@ -12,10 +13,12 @@ TRAILING_ZEROS = "000000000000000000000000"
 
 
 async def inspect_block(
+    inspect_db_session: orm.Session,
     w3: Web3,
     block_number: int,
 ):
     await inspect_many_blocks(
+        inspect_db_session,
         w3,
         block_number,
         block_number + 1,
@@ -23,6 +26,7 @@ async def inspect_block(
 
 
 async def inspect_many_blocks(
+    inspect_db_session: orm.Session,
     w3: Web3,
     after_block_number: int,
     before_block_number: int,
@@ -84,6 +88,7 @@ async def inspect_many_blocks(
     if count > 0:
         print("writing profits of {0} mev transactions".format(count))
         # @TODO: Write profits to DB
+        print(inspect_db_session.info())
         arbitrages_payload = []
         liquidations_payload = []
         count = 0
