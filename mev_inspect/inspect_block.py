@@ -88,7 +88,7 @@ async def inspect_many_blocks(
     if count > 0:
         print("writing profits of {0} mev transactions".format(count))
         # @TODO: Write profits to DB
-        print(inspect_db_session.info())
+        print(inspect_db_session.info)
         arbitrages_payload = []
         liquidations_payload = []
         count = 0
