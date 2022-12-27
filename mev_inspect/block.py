@@ -27,11 +27,11 @@ async def create_from_block_number(
     w3: Web3,
     block_number: int,
     trace_db_session: Optional[orm.Session],
+    client,
 ) -> Block:
-    block_timestamp, receipts, traces, base_fee_per_gas = await asyncio.gather(
+    block_timestamp, traces, base_fee_per_gas = await asyncio.gather(
         _find_or_fetch_block_timestamp(w3, block_number, trace_db_session),
-        _find_or_fetch_block_receipts(w3, block_number, trace_db_session),
-        _find_or_fetch_block_traces(w3, block_number, trace_db_session),
+        _find_or_fetch_block_traces(block_number, trace_db_session, client),
         _find_or_fetch_base_fee_per_gas(w3, block_number, trace_db_session),
     )
 
@@ -43,7 +43,6 @@ async def create_from_block_number(
         miner=miner_address,
         base_fee_per_gas=base_fee_per_gas,
         traces=traces,
-        receipts=receipts,
     )
 
 
@@ -74,16 +73,16 @@ async def _find_or_fetch_block_receipts(
 
 
 async def _find_or_fetch_block_traces(
-    w3,
     block_number: int,
     trace_db_session: Optional[orm.Session],
+    client,
 ) -> List[Trace]:
     if trace_db_session is not None:
         existing_block_traces = _find_block_traces(trace_db_session, block_number)
         if existing_block_traces is not None:
             return existing_block_traces
 
-    return await _fetch_block_traces(w3, block_number)
+    return await _fetch_block_traces(client, block_number)
 
 
 async def _find_or_fetch_base_fee_per_gas(
@@ -111,8 +110,8 @@ async def _fetch_block_receipts(w3, block_number: int) -> List[Receipt]:
     return [Receipt(**receipt) for receipt in receipts_json]
 
 
-async def _fetch_block_traces(w3, block_number: int) -> List[Trace]:
-    traces_json = await w3.eth.trace_block(block_number)
+async def _fetch_block_traces(client, block_number: int) -> List[Trace]:
+    traces_json = client.make_request("arbtrace_block", [block_number])
     return [Trace(**trace_json) for trace_json in traces_json]
 
 

@@ -5,7 +5,7 @@ from asyncio import CancelledError
 from typing import Optional
 
 from sqlalchemy import orm
-from web3 import Web3
+from web3 import HTTPProvider, Web3
 from web3.eth import AsyncEth
 
 from mev_inspect.block import create_from_block_number
@@ -15,7 +15,6 @@ from mev_inspect.methods import get_block_receipts, trace_block
 from mev_inspect.provider import get_base_provider
 
 logger = logging.getLogger(__name__)
-
 
 # add missing parity methods
 # this is a bit gross
@@ -32,7 +31,7 @@ class MEVInspector:
     ):
         base_provider = get_base_provider(rpc, request_timeout=request_timeout)
         self.w3 = Web3(base_provider, modules={"eth": (AsyncEth,)}, middlewares=[])
-
+        self.arb_client = HTTPProvider(rpc)
         self.trace_classifier = TraceClassifier()
         self.max_concurrency = asyncio.Semaphore(max_concurrency)
 
@@ -45,6 +44,7 @@ class MEVInspector:
             w3=self.w3,
             block_number=block_number,
             trace_db_session=trace_db_session,
+            client=self.arb_client,
         )
 
     async def inspect_single_block(
@@ -59,6 +59,7 @@ class MEVInspector:
             self.trace_classifier,
             block,
             trace_db_session=trace_db_session,
+            client=self.arb_client,
         )
 
     async def inspect_many_blocks(
@@ -84,7 +85,7 @@ class MEVInspector:
                     )
                 )
             )
-        logger.info(f"Gathered {before_block-after_block} blocks to inspect")
+        logger.info(f"Gathered {before_block - after_block} blocks to inspect")
         try:
             await asyncio.gather(*tasks)
         except CancelledError:
@@ -109,4 +110,5 @@ class MEVInspector:
                 after_block_number,
                 before_block_number,
                 trace_db_session=trace_db_session,
+                client=self.arb_client,
             )

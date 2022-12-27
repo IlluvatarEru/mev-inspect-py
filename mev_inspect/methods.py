@@ -5,7 +5,7 @@ from web3.method import Method, default_root_munger
 from web3.types import BlockIdentifier, ParityBlockTrace, RPCEndpoint
 
 trace_block: Method[Callable[[BlockIdentifier], List[ParityBlockTrace]]] = Method(
-    RPC.trace_block,
+    RPC.arbtrace_block,
     mungers=[default_root_munger],
 )
 

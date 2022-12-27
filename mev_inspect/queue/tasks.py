@@ -28,6 +28,7 @@ def inspect_many_blocks_task(
                     trace_db_session=trace_db_session,
                     after_block=after_block,
                     before_block=before_block,
+                    client=InspectorMiddleware.get_inspector().arb_client,
                 )
             )
 

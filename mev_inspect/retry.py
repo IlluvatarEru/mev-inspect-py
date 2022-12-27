@@ -25,7 +25,11 @@ aiohttp_exceptions = (
     ServerTimeoutError,
 )
 
-whitelist_additions = ["eth_getBlockReceipts", "trace_block", "eth_feeHistory"]
+whitelist_additions = [
+    "eth_getBlockReceipts",
+    "debug_traceBlockByNumber",
+    "eth_feeHistory",
+]
 
 logger = logging.getLogger(__name__)
 

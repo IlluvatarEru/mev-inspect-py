@@ -35,7 +35,6 @@ from mev_inspect.crud.traces import (
 )
 from mev_inspect.crud.transfers import delete_transfers_for_blocks, write_transfers
 from mev_inspect.liquidations import get_liquidations
-from mev_inspect.miner_payments import get_miner_payments
 from mev_inspect.nft_trades import get_nft_trades
 from mev_inspect.punks import get_punk_bid_acceptances, get_punk_bids, get_punk_snipes
 from mev_inspect.sandwiches import get_sandwiches
@@ -63,6 +62,7 @@ async def inspect_block(
     trace_classifier: TraceClassifier,
     block_number: int,
     trace_db_session: Optional[orm.Session],
+    client,
     should_write_classified_traces: bool = True,
 ):
     await inspect_many_blocks(
@@ -72,6 +72,7 @@ async def inspect_block(
         block_number,
         block_number + 1,
         trace_db_session,
+        client,
         should_write_classified_traces,
     )
 
@@ -83,6 +84,7 @@ async def inspect_many_blocks(
     after_block_number: int,
     before_block_number: int,
     trace_db_session: Optional[orm.Session],
+    client,
     should_write_classified_traces: bool = True,
 ):
     all_blocks: List[Block] = []
@@ -106,6 +108,7 @@ async def inspect_many_blocks(
             w3,
             block_number,
             trace_db_session,
+            client,
         )
 
         logger.info(f"Block: {block_number} -- Total traces: {len(block.traces)}")
@@ -149,10 +152,6 @@ async def inspect_many_blocks(
         nft_trades = get_nft_trades(classified_traces)
         logger.info(f"Block: {block_number} -- Found {len(nft_trades)} nft trades")
 
-        miner_payments = get_miner_payments(
-            block.miner, block.base_fee_per_gas, classified_traces, block.receipts
-        )
-
         all_blocks.append(block)
         all_classified_traces.extend(classified_traces)
         all_transfers.extend(transfers)
@@ -166,8 +165,6 @@ async def inspect_many_blocks(
         all_punk_snipes.extend(punk_snipes)
 
         all_nft_trades.extend(nft_trades)
-
-        all_miner_payments.extend(miner_payments)
 
     logger.info("Writing data")
     delete_blocks(inspect_db_session, after_block_number, before_block_number)
