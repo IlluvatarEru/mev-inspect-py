@@ -1,8 +1,8 @@
 #!/bin/sh
 # bash script to create a new branch that respects the library standard
-#### ./scripts/create_new_branch.sh "[FEAT] - Implement instrument types #14"
-#### ./scripts/create_new_branch.sh "[FEAT] Implement instrument types #14"
-#### ./scripts/create_new_branch.sh "[FEAT] - Implement instrument types#14"
+#### bash scripts/create_new_branch.sh "[FEAT] - Implement instrument types #14"
+#### bash scripts/create_new_branch.sh "[FEAT] Implement instrument types #14"
+#### bash scripts/create_new_branch.sh "[FEAT] - Implement instrument types#14"
 base_issue=$1
 issue_number=${base_issue##*#}
 issue="${base_issue%%#*}"
