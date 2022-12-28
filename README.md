@@ -66,6 +66,10 @@ And load prices data
 ./mev prices fetch-all
 ```
 
+Alternatively, once you have created a new cluster, copy paste your RPC URL into `scripts/startup.sh` and run:
+```
+bash scripts/startup.sh
+```
 ## Usage
 
 ### Inspect a single block
