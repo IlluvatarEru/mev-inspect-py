@@ -23,8 +23,6 @@ from profit_analysis.constants import DATA_PATH
 from profit_analysis.read import read_profit_from_to
 from profit_analysis.token_utils import get_decimals
 
-from mev_inspect.db import get_inspect_session
-
 """
 Steps:
 1. given blockfrom and block to, read the profit
@@ -34,14 +32,17 @@ WETH_TOKEN_ADDRESS = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
 PD_DATETIME_FORMAT = "datetime64[ns]"
 
 
-def analyze_profit(block_from, block_to):
-    inspect_db_session = get_inspect_session()
+def analyze_profit(inspect_db_session, block_from, block_to):
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     print(profit)
+    w3 = create_web3()
+    profit = add_block_timestamp(w3, profit)
+    profit = add_cg_ids(profit)
+    profit = get_usd_profit_arbitrages(profit)
     return profit
 
 
-def get_usd_profit_arbitrages(profit_by_block):
+def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
     tokens = profit_by_block[CG_ID_RECEIVED_KEY].unique()
     mapping = get_address_to_coingecko_ids_mapping()
     profit_with_price_tokens = pd.DataFrame()
@@ -183,6 +184,8 @@ def get_usd_profit_arbitrages(profit_by_block):
     profit_with_price_tokens["date"] = profit_with_price_tokens[
         TIMESTAMP_KEY
     ].dt.normalize()
+    if save_to_csv:
+        profit_by_block.to_csv(DATA_PATH + "usd_profit.csv", index=False)
     return profit_with_price_tokens
 
 
@@ -196,21 +199,6 @@ def get_profit_by(profit_with_price_tokens, col):
     profit_by_block.rename(columns={"": col}, inplace=True)
     profit_by_block.to_csv(DATA_PATH + "profit_by_" + col + ".csv", index=False)
     return profit_by_block
-
-
-def save_profit_all_blocks(n_blocks=3970):
-    profit_all_blocks = pd.DataFrame()
-    for i in range(n_blocks):
-        print("    i=" + str(i) + "/" + str(n_blocks))
-        profit_by_block = pd.read_csv(
-            DATA_PATH + "total_profit_by_block_" + str(i) + ".csv"
-        )
-        profit_by_block[TOKEN_DEBT_KEY] = profit_by_block[TOKEN_DEBT_KEY].astype(str)
-        w3 = create_web3()
-        profit_by_block = add_block_timestamp(w3, profit_by_block)
-        profit_by_block = add_cg_ids(profit_by_block)
-        profit_all_blocks = pd.concat([profit_all_blocks, profit_by_block])
-    profit_all_blocks.to_csv(DATA_PATH + "profit_all_blocks.csv", index=False)
 
 
 def create_web3():
