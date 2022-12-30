@@ -1,10 +1,10 @@
 import pandas as pd
 
 
-def read_from_db_all_into_dataframe(db, table, columns, where_clause):
+def read_from_db_all_into_dataframe(db_session, table, columns, where_clause):
     """
     Reads all relevant rows from the DB as a df
-    :param db:
+    :param db_session:
     :param table:
     :param columns:
     :param where_clause:
@@ -13,7 +13,7 @@ def read_from_db_all_into_dataframe(db, table, columns, where_clause):
     query = "SELECT " + columns + " FROM " + table
     if where_clause != "":
         query += " WHERE " + where_clause
-    result = pd.read_sql_query(query, db)
+    result = db_session.execute(query)
     return result
 
 
@@ -24,5 +24,8 @@ def read_profit_from_to(db_session, block_from, block_to):
     profit = read_from_db_all_into_dataframe(
         db_session, "total_profit_by_block", "*", where_clause
     )
-    print("HERE")
+    for l in profit:
+        print(l)
+    profit = pd.DataFrame(profit.fetchall())
+    print(profit)
     return profit

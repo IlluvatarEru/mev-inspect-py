@@ -52,8 +52,13 @@ async def inspect_block_command(block_number: int, rpc: str):
 @click.argument("block_from", type=int)
 @click.argument("block_to", type=int)
 @coro
-async def analyze_profit_command(block_from: int, block_to: int):
+def analyze_profit_command(block_from: int, block_to: int):
+    print("FROM")
     inspect_db_session = get_inspect_session()
+    print(
+        inspect_db_session.execute("SELECT table_name FROM information_schema.tables")
+    )
+    print(inspect_db_session.bind.table_names())
 
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     print(profit)
