@@ -24,4 +24,5 @@ def read_profit_from_to(db_session, block_from, block_to):
     profit = read_from_db_all_into_dataframe(
         db_session, "total_profit_by_block", "*", where_clause
     )
+    print("HERE")
     return profit

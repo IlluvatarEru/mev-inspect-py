@@ -10,9 +10,9 @@ from profit_analysis.column_names import (
     TOKEN_KEY,
     TOKEN_RECEIVED_KEY,
 )
-from profit_analysis.profit_analysis import DATA_PATH
+from profit_analysis.constants import DATA_PATH
 
-from mev_inspect.inspect_block import TRAILING_ZEROS
+TRAILING_ZEROS = "000000000000000000000000"
 
 
 def get_address_to_coingecko_ids_mapping():

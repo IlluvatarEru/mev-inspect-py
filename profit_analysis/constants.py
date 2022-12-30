@@ -1,1 +1,1 @@
-DATA_PATH = "resources/"
+DATA_PATH = "../resources/"

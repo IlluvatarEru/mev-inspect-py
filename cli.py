@@ -6,6 +6,7 @@ from datetime import datetime
 
 import click
 import dramatiq
+from profit_analysis.read import read_profit_from_to
 
 from mev_inspect.concurrency import coro
 from mev_inspect.crud.prices import write_prices
@@ -45,6 +46,17 @@ async def inspect_block_command(block_number: int, rpc: str):
         inspect_db_session=inspect_db_session,
         block=block_number,
     )
+
+
+@cli.command()
+@click.argument("block_from", type=int)
+@click.argument("block_to", type=int)
+@coro
+async def analyze_profit_command(block_from: int, block_to: int):
+    inspect_db_session = get_inspect_session()
+
+    profit = read_profit_from_to(inspect_db_session, block_from, block_to)
+    print(profit)
 
 
 @cli.command()

@@ -38,6 +38,7 @@ def analyze_profit(block_from, block_to):
     inspect_db_session = get_inspect_session()
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     print(profit)
+    return profit
 
 
 def get_usd_profit_arbitrages(profit_by_block):
