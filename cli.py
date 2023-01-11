@@ -55,7 +55,7 @@ async def inspect_block_command(block_number: int, rpc: str):
 @coro
 async def analyze_profit_command(block_from: int, block_to: int):
     inspect_db_session = get_inspect_session()
-    profit = analyze_profit(inspect_db_session, block_from, block_to)
+    profit = analyze_profit(inspect_db_session, block_from, block_to, False)
     print("    -------------------------------------------------------------------")
     print("    Profit By Block")
     print(get_profit_by(profit, BLOCK_KEY))

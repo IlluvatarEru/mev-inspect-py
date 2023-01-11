@@ -34,12 +34,12 @@ WETH_TOKEN_ADDRESS = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
 PD_DATETIME_FORMAT = "datetime64[ns]"
 
 
-def analyze_profit(inspect_db_session, block_from, block_to):
+def analyze_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     w3 = create_web3()
     profit = add_block_timestamp(w3, profit)
     profit = add_cg_ids(profit)
-    profit = get_usd_profit_arbitrages(profit)
+    profit = get_usd_profit_arbitrages(profit, save_to_csv)
     return profit
 
 
@@ -47,6 +47,7 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
     tokens = profit_by_block[CG_ID_RECEIVED_KEY].unique()
     mapping = get_address_to_coingecko_ids_mapping()
     profit_with_price_tokens = pd.DataFrame()
+    failures = {}
     for token in tokens:
         print("Processing", token)
         try:
@@ -174,6 +175,7 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
             # @TODO: save into list to add later
             print("    Failed for token=", token)
             print(e)
+            failures[token] = e
     print("Finished processing all tokens")
     profit_with_price_tokens[PRICE_DEBT_KEY] = profit_with_price_tokens[
         PRICE_DEBT_KEY
@@ -193,6 +195,9 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
     ].dt.normalize()
     if save_to_csv:
         profit_by_block.to_csv(DATA_PATH + "usd_profit.csv", index=False)
+        pd.DataFrame(failures.items(), columns=["token", "error"]).to_csv(
+            DATA_PATH + "analyze_profit_failures.csv", index=False
+        )
     return profit_with_price_tokens
 
 

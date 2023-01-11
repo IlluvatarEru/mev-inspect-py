@@ -8,7 +8,7 @@ from mev_inspect.db import get_inspect_session
 block_from = int(sys.argv[1])
 block_to = int(sys.argv[2])
 inspect_db_session = get_inspect_session()
-profit = analyze_profit(inspect_db_session, block_from, block_to)
+profit = analyze_profit(inspect_db_session, block_from, block_to, True)
 print("    -------------------------------------------------------------------")
 print("    Profit By Block")
 print(get_profit_by(profit, BLOCK_KEY))
