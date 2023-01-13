@@ -2,13 +2,12 @@
 # This is a script to analyze MEV profits
 # Input the pool Id of mev-inspect (can be found on your TILT interface)
 # TODO: How to extract the mev-inspect pool id to copy the csv files?
-mevInspectPoolId="mev-inspect-7746b4d64-btrjp"
+mevInspectPoolId="mev-inspect-759f8dc6f7-2nnzl"
 # Input the starting and ending blocks you want to run the profit analysis for
 blockFrom=$((34500000))
 blockTo=$((34800000))
 window=$((100))
 reps=$(((${blockTo}-${blockFrom})/${window}))
-reps=-1
 echo "${reps}"
 for i in $(seq 0 1 $reps)
 do

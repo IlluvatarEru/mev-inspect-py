@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import pandas as pd
 import web3
@@ -252,7 +253,8 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
 
 
 def create_web3():
-    w3_provider = web3.Web3(web3.Web3.HTTPProvider("https://polygon-rpc.com"))
+    web3_rpc_url = os.environ.get("RPC_URL")
+    w3_provider = web3.Web3(web3.Web3.HTTPProvider(web3_rpc_url))
     w3_provider.middleware_onion.inject(web3.middleware.geth_poa_middleware, layer=0)
     if w3_provider.isConnected():
         return w3_provider
