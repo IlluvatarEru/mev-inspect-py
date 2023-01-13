@@ -44,7 +44,19 @@ def add_cg_ids(profit_by_block):
     profit_by_block = profit_by_block.merge(
         token_cg_ids[[TOKEN_RECEIVED_KEY, CG_ID_RECEIVED_KEY]], how="left"
     )
-    return profit_by_block
+    return profit_by_block[
+        [
+            "block_number",
+            "timestamp",
+            "transaction_hash",
+            "token_debt",
+            "amount_debt",
+            "cg_id_debt",
+            "token_received",
+            "amount_received",
+            "cg_id_received",
+        ]
+    ]
 
 
 def get_coingecko_historical_prices(start, end, token):

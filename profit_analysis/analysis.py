@@ -22,8 +22,9 @@ from profit_analysis.column_names import (
     TOKEN_RECEIVED_KEY,
 )
 from profit_analysis.constants import DATA_PATH
-from profit_analysis.read import read_profit_from_to
 from profit_analysis.token_utils import get_decimals
+
+from mev_inspect.crud.read import read_profit_from_to
 
 """
 Steps:
@@ -39,12 +40,26 @@ def analyze_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
     w3 = create_web3()
     profit = add_block_timestamp(w3, profit)
     profit = add_cg_ids(profit)
-    profit = get_usd_profit_arbitrages(profit, save_to_csv)
+    profit = get_usd_profit(profit, save_to_csv)
+    print(profit)
     return profit
 
 
-def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
-    tokens = profit_by_block[CG_ID_RECEIVED_KEY].unique()
+def get_usd_profit(profit, save_to_csv=False):
+    """
+    For each token involved in mev transactions, will get its price at the time of the transaction and
+    compute the profit of each mev transaction.
+
+    :param profit: pd.DataFrame, with columns = ['block_number', 'timestamp', 'transaction_hash',
+        'token_debt', 'amount_debt', 'cg_id_debt',
+       'token_received', 'amount_received', 'cg_id_received']
+    :param save_to_csv: bool, whether to save the analysed profits to csv or not
+    :return: pd.DataFrame, with columns = ['block_number', 'timestamp', 'date', 'transaction_hash',
+       'amount_received', 'token_received', 'price_received',
+       'amount_debt', 'token_debt', 'price_debt',
+       'profit_usd' ]
+    """
+    tokens = profit[CG_ID_RECEIVED_KEY].unique()
     mapping = get_address_to_coingecko_ids_mapping()
     profit_with_price_tokens = pd.DataFrame()
     failures = {}
@@ -52,14 +67,14 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
         print("Processing", token)
         try:
 
-            profit_by_block_token = pd.DataFrame(
-                profit_by_block.loc[profit_by_block[CG_ID_RECEIVED_KEY] == token]
+            profit_by_received_token = pd.DataFrame(
+                profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
             )
-            profit_by_block_token[TIMESTAMP_KEY] = pd.to_datetime(
-                profit_by_block_token[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
+            profit_by_received_token[TIMESTAMP_KEY] = pd.to_datetime(
+                profit_by_received_token[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
             )
 
-            dates = pd.to_datetime(profit_by_block_token[TIMESTAMP_KEY].unique())
+            dates = pd.to_datetime(profit_by_received_token[TIMESTAMP_KEY].unique())
             # @TODO: What is an optimal value here?
             # looks like sometimes there is no price for hours???
             offset_minutes = 30
@@ -76,12 +91,14 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
             token_prices[TOKEN_RECEIVED_KEY] = token
 
             # get received token decimals
-            decimals = get_decimals(profit_by_block_token[TOKEN_RECEIVED_KEY].values[0])
+            decimals = get_decimals(
+                profit_by_received_token[TOKEN_RECEIVED_KEY].values[0]
+            )
 
             # get debt tokens prices
             debt_tokens_prices = pd.DataFrame()
             for cg_id_debt in (
-                profit_by_block_token[CG_ID_DEBT_KEY].astype(str).unique().tolist()
+                profit_by_received_token[CG_ID_DEBT_KEY].astype(str).unique().tolist()
             ):
                 if cg_id_debt != "nan":
                     debt_token_prices = get_coingecko_historical_prices(
@@ -104,7 +121,7 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
                 columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
             )
             for debt_token in (
-                profit_by_block_token[TOKEN_DEBT_KEY].astype(str).unique().tolist()
+                profit_by_received_token[TOKEN_DEBT_KEY].astype(str).unique().tolist()
             ):
                 if debt_token != "":
                     debt_token_decimals = get_decimals(debt_token)
@@ -117,19 +134,19 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
                             ),
                         ]
                     )
-            profit_by_block_token = profit_by_block_token.merge(
+            profit_by_received_token = profit_by_received_token.merge(
                 debt_tokens_decimals, on=TOKEN_DEBT_KEY, how="outer"
             )
-            profit_by_block_token.loc[
-                pd.isna(profit_by_block_token[AMOUNT_DEBT_KEY]), AMOUNT_DEBT_KEY
+            profit_by_received_token.loc[
+                pd.isna(profit_by_received_token[AMOUNT_DEBT_KEY]), AMOUNT_DEBT_KEY
             ] = 0
 
             # apply decimals
-            profit_by_block_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
-                profit_by_block_token[AMOUNT_RECEIVED_KEY]
+            profit_by_received_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
+                profit_by_received_token[AMOUNT_RECEIVED_KEY]
             ).div(10**decimals)
-            profit_by_block_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
-                profit_by_block_token[AMOUNT_DEBT_KEY]
+            profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
+                profit_by_received_token[AMOUNT_DEBT_KEY]
             )
 
             # set up timestamps for merge
@@ -137,7 +154,7 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
 
             # merge received token prices
             profit_with_price_token = pd.merge_asof(
-                profit_by_block_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+                profit_by_received_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
                 .sort_values(TIMESTAMP_KEY)
                 .convert_dtypes(),
                 token_prices[[TIMESTAMP_KEY, PRICE_RECEIVED_KEY]]
@@ -165,9 +182,12 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
                     on=TIMESTAMP_KEY,
                     by=TOKEN_DEBT_KEY,
                 )
+                category = "liquidation"
             else:
-                profit_with_price_tokens[PRICE_DEBT_KEY] = 0
+                category = "arbitrage"
+                profit_with_price_token[PRICE_DEBT_KEY] = 0
 
+            profit_with_price_token["category"] = category
             profit_with_price_tokens = pd.concat(
                 [profit_with_price_tokens, profit_with_price_token]
             )
@@ -194,14 +214,29 @@ def get_usd_profit_arbitrages(profit_by_block, save_to_csv=False):
         TIMESTAMP_KEY
     ].dt.normalize()
     if save_to_csv:
-        profit_by_block.to_csv(DATA_PATH + "usd_profit.csv", index=False)
+        profit.to_csv(DATA_PATH + "usd_profit.csv", index=False)
         pd.DataFrame(failures.items(), columns=["token", "error"]).to_csv(
             DATA_PATH + "analyze_profit_failures.csv", index=False
         )
-    return profit_with_price_tokens
+    return profit_with_price_tokens[
+        [
+            "block_number",
+            "timestamp",
+            "date",
+            "transaction_hash",
+            "amount_received",
+            "token_received",
+            "price_received",
+            "amount_debt",
+            "token_debt",
+            "price_debt",
+            "profit_usd",
+            "category",
+        ]
+    ]
 
 
-def get_profit_by(profit_with_price_tokens, col):
+def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
     profit_by_block = (
         profit_with_price_tokens.groupby([col])
         .agg({"profit_usd": ["sum", "mean", "median", "count"]})
@@ -209,7 +244,10 @@ def get_profit_by(profit_with_price_tokens, col):
     )
     profit_by_block.columns = profit_by_block.columns.droplevel(0)
     profit_by_block.rename(columns={"": col}, inplace=True)
-    profit_by_block.to_csv(DATA_PATH + "profit_by_" + col + ".csv", index=False)
+    if save_to_csv:
+        file_name = DATA_PATH + "profit_by_" + col + ".csv"
+        print(file_name)
+        profit_by_block.to_csv(file_name, index=False)
     return profit_by_block
 
 

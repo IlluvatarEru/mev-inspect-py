@@ -25,4 +25,5 @@ def read_profit_from_to(db_session, block_from, block_to):
         db_session, "total_profit_by_block", "*", where_clause
     )
     profit = pd.DataFrame(profit.fetchall())
+    profit = profit.drop(["id"], axis=1)
     return profit
