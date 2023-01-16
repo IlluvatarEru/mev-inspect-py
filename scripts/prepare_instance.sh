@@ -27,6 +27,9 @@ sudo apt install python3-pip -y &&
 # Install postgres lib
 sudo apt-get install -y libpq-dev &&
 
+# Install helm
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
 # Install go
 rm -rf /usr/local/go ; wget https://go.dev/dl/go1.19.4.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz &&
 export PATH=$PATH:/usr/local/go/bin &&
@@ -38,7 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/instal
 curl -sSL https://install.python-poetry.org | python3 - &&
 export PATH=$HOME/.local/bin:$PATH &&
 
-# Clone the repository and prepare the enviro nment
+# Clone the repository and prepare the environment
 git clone https://github.com/IlluvatarEru/mev-inspect-py.git &&
 cd mev-inspect-py &&
 python3 -m pip install cytoolz &&
