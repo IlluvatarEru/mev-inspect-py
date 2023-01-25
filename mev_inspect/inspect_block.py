@@ -6,7 +6,10 @@ from web3 import Web3
 
 from mev_inspect.arbitrages import get_arbitrages
 from mev_inspect.block import get_classified_traces_from_events
-from mev_inspect.crud.total_profits import write_total_profits_for_blocks
+from mev_inspect.crud.total_profits import (
+    delete_existing_blocks,
+    write_total_profits_for_blocks,
+)
 from mev_inspect.schemas.total_profits import TotalProfits
 
 logger = logging.getLogger(__name__)
@@ -33,6 +36,9 @@ async def inspect_many_blocks(
     after_block_number: int,
     before_block_number: int,
 ):
+    # Cleanup database
+    delete_existing_blocks(inspect_db_session, after_block_number, before_block_number)
+
     count = 0
     arbitrages_payload = []
     liquidations_payload = []
