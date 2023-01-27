@@ -3,7 +3,7 @@ from time import sleep
 
 import pandas as pd
 from profit_analysis.column_names import BLOCK_KEY, TIMESTAMP_KEY
-from profit_analysis.web3_provider import W3, create_web3
+from profit_analysis.web3_provider import W3
 
 
 def add_block_timestamp(profit_by_block):
@@ -28,6 +28,5 @@ def get_block_timestamp(block):
         except Exception as e:
             print(f"Error, retrying {e}")
             sleep(0.05)
-    new_ind = (W3.ind + 1) % len(W3.web3_rpc_urls)
-    W3.w3_provider = create_web3(W3.web3_rpc_urls, new_ind)
-    W3.ind = new_ind
+    W3.rotate_rpc_url()
+    return get_block_timestamp(block)

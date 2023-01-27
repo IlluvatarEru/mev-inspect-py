@@ -14,6 +14,11 @@ class Web3Provider:
         self.ind = ind
         self.w3_provider = create_web3(web3_rpc_urls, ind)
 
+    def rotate_rpc_url(self):
+        new_ind = (self.ind + 1) % len(self.web3_rpc_urls)
+        self.w3_provider = create_web3(self.web3_rpc_urls, new_ind)
+        self.ind = new_ind
+
 
 def create_web3(web3_rpc_urls, ind=0):
     web3_rpc_pocket_endpoint = web3_rpc_urls[ind]
