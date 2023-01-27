@@ -35,6 +35,7 @@ Steps:
 
 WETH_TOKEN_ADDRESS = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
 PD_DATETIME_FORMAT = "datetime64[ns]"
+POKT_ENDPOINT_BASE_URL = "https://poly-mainnet.gateway.pokt.network/v1/lb/"
 
 
 def analyze_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
@@ -259,11 +260,12 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
 
 
 def create_web3(ind=0):
-    web3_rpc_urls = os.environ.get("POCKET_ENDPOINTS_LIST")
+    web3_rpc_pocket_endpoints = os.environ.get("POCKET_ENDPOINTS_LIST")
+    print(f"web3_rpc_urls={web3_rpc_pocket_endpoints}")
+    web3_rpc_urls = ast.literal_eval(web3_rpc_pocket_endpoints)
     print(f"web3_rpc_urls={web3_rpc_urls}")
-    web3_rpc_urls = ast.literal_eval(web3_rpc_urls)
-    print(f"web3_rpc_urls={web3_rpc_urls}")
-    web3_rpc_url = web3_rpc_urls[ind]
+    web3_rpc_pocket_endpoint = web3_rpc_urls[ind]
+    web3_rpc_url = POKT_ENDPOINT_BASE_URL + web3_rpc_pocket_endpoint
     w3_provider = web3.Web3(web3.Web3.HTTPProvider(web3_rpc_url))
     w3_provider.middleware_onion.inject(web3.middleware.geth_poa_middleware, layer=0)
     if w3_provider.isConnected():

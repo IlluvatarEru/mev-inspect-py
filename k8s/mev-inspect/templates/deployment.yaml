@@ -85,6 +85,11 @@ spec:
               configMapKeyRef:
                 name: mev-inspect-rpc
                 key: url
+          - name: POCKET_ENDPOINTS_LIST
+            valueFrom:
+              configMapKeyRef:
+                name: mev-inspect-rpcs
+                key: url
           - name: LISTENER_HEALTHCHECK_URL
             valueFrom:
               configMapKeyRef:
@@ -125,9 +130,4 @@ spec:
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      

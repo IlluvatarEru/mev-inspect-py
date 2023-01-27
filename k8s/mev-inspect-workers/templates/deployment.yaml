@@ -85,10 +85,10 @@ spec:
               configMapKeyRef:
                 name: mev-inspect-rpc
                 key: url
-          - name: RPC_URL
+          - name: POCKET_ENDPOINTS_LIST
             valueFrom:
               configMapKeyRef:
-                name: mev-inspect-rpc
+                name: mev-inspect-rpcs
                 key: url
           - name: LISTENER_HEALTHCHECK_URL
             valueFrom:
