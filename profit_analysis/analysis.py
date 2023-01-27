@@ -1,3 +1,4 @@
+import ast
 import datetime
 import os
 
@@ -257,8 +258,12 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
     return profit_by_block
 
 
-def create_web3():
-    web3_rpc_url = os.environ.get("RPC_URL")
+def create_web3(ind=0):
+    web3_rpc_urls = os.environ.get("POCKET_ENDPOINTS_LIST")
+    print(f"web3_rpc_urls={web3_rpc_urls}")
+    web3_rpc_urls = ast.literal_eval(web3_rpc_urls)
+    print(f"web3_rpc_urls={web3_rpc_urls}")
+    web3_rpc_url = web3_rpc_urls[ind]
     w3_provider = web3.Web3(web3.Web3.HTTPProvider(web3_rpc_url))
     w3_provider.middleware_onion.inject(web3.middleware.geth_poa_middleware, layer=0)
     if w3_provider.isConnected():

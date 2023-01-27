@@ -85,6 +85,11 @@ spec:
               configMapKeyRef:
                 name: mev-inspect-rpc
                 key: url
+          - name: RPC_URL
+            valueFrom:
+              configMapKeyRef:
+                name: mev-inspect-rpc
+                key: url
           - name: LISTENER_HEALTHCHECK_URL
             valueFrom:
               configMapKeyRef:
