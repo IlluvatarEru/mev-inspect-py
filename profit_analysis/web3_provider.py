@@ -9,7 +9,10 @@ POKT_ENDPOINT_BASE_URL = "https://poly-mainnet.gateway.pokt.network/v1/lb/"
 class Web3Provider:
     def __init__(self, ind):
         web3_rpc_pocket_endpoints = os.environ.get("POCKET_ENDPOINTS_LIST")
-        web3_rpc_urls = ast.literal_eval(web3_rpc_pocket_endpoints)
+        if web3_rpc_pocket_endpoints is None:
+            web3_rpc_urls = [os.environ.get("RPC_URL")]
+        else:
+            web3_rpc_urls = ast.literal_eval(web3_rpc_pocket_endpoints)
         self.web3_rpc_urls = web3_rpc_urls
         self.ind = ind
         self.w3_provider = create_web3(web3_rpc_urls, ind)
