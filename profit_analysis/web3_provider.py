@@ -15,9 +15,6 @@ class Web3Provider:
         self.w3_provider = create_web3(web3_rpc_urls, ind)
 
 
-W3 = Web3Provider(0)
-
-
 def create_web3(web3_rpc_urls, ind=0):
     web3_rpc_pocket_endpoint = web3_rpc_urls[ind]
     web3_rpc_url = POKT_ENDPOINT_BASE_URL + web3_rpc_pocket_endpoint
@@ -27,3 +24,6 @@ def create_web3(web3_rpc_urls, ind=0):
         return w3_provider
     else:
         raise Exception("Failed to connect")
+
+
+W3 = Web3Provider(0)
