@@ -220,7 +220,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
         TIMESTAMP_KEY
     ].dt.normalize()
     if save_to_csv:
-        profit.to_csv(DATA_PATH + "usd_profit.csv", index=False)
+        profit_with_price_tokens.to_csv(DATA_PATH + "usd_profit.csv", index=False)
         pd.DataFrame(failures.items(), columns=["token", "error"]).to_csv(
             DATA_PATH + "analyze_profit_failures.csv", index=False
         )
