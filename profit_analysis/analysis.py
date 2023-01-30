@@ -12,6 +12,7 @@ from profit_analysis.coingecko import (
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
     AMOUNT_RECEIVED_KEY,
+    BLOCK_KEY,
     CG_ID_DEBT_KEY,
     CG_ID_RECEIVED_KEY,
     DECIMAL_DEBT_KEY,
@@ -23,6 +24,12 @@ from profit_analysis.column_names import (
     TOKEN_RECEIVED_KEY,
 )
 from profit_analysis.constants import DATA_PATH
+from profit_analysis.metrics import (
+    compute_profit_kurtosis,
+    compute_profit_skewness,
+    get_top_tokens,
+    plot_profit_distribution,
+)
 from profit_analysis.token_utils import get_decimals
 
 from mev_inspect.crud.read import read_profit_from_to
@@ -36,7 +43,38 @@ WETH_TOKEN_ADDRESS = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
 PD_DATETIME_FORMAT = "datetime64[ns]"
 
 
-def analyze_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
+def analyze_profit(profit):
+    print("    -------------------------------------------------------------------")
+    print("    Profit By Block")
+    print(get_profit_by(profit, BLOCK_KEY, True))
+    print("    -------------------------------------------------------------------")
+    print("    Profit By Day")
+    print(get_profit_by(profit, "date", True))
+    print("    -------------------------------------------------------------------")
+    print("    Profit By Category")
+    print(get_profit_by(profit, "category", True))
+    print("    -------------------------------------------------------------------")
+    print("    Profit Skewnes")
+    print(compute_profit_skewness(profit))
+    print("    -------------------------------------------------------------------")
+    print("    Profit Kurtosis")
+    print(compute_profit_kurtosis(profit))
+    print("    -------------------------------------------------------------------")
+    print("    Top 10 tokens profit was taken in")
+    print(get_top_tokens(profit))
+    print("    -------------------------------------------------------------------")
+    print("    Profit Distribution")
+    print(plot_profit_distribution(profit))
+
+
+def compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
+    """
+
+    :return: pd.DataFrame, with columns = ['block_number', 'timestamp', 'date', 'transaction_hash',
+       'amount_received', 'token_received', 'price_received',
+       'amount_debt', 'token_debt', 'price_debt',
+       'profit_usd' ]
+    """
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     w3 = create_web3()
     profit = add_block_timestamp(w3, profit)

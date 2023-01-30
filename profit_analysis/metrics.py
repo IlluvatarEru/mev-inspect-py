@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from profit_analysis.column_names import TOKEN_RECEIVED_KEY
 
 PROFIT_DISTRIBUTION_FILE_NAME = "profit_distribution.png"
 
@@ -21,3 +22,8 @@ def compute_profit_skewness(profit: pd.DataFrame):
 
 def compute_profit_kurtosis(profit: pd.DataFrame):
     return profit["profit_usd"].kurtosis()
+
+
+def get_top_tokens(profit, top=10):
+    top_tokens = profit[TOKEN_RECEIVED_KEY].value_count().sort_values(ascending=False)
+    return top_tokens.head(top)
