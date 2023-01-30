@@ -14,14 +14,14 @@ def hist_data(data, bins=None):
     return hist, bin_edges
 
 
-def plot_profit_distribution(profit: pd.DataFrame, include_plot=False):
+def plot_profit_distribution(profit: pd.DataFrame, show_plot=False):
     profit = profit["profit_usd"]
     hist, bin_edges = hist_data(profit)
-    if include_plot:
-        plt.hist(bin_edges[:-1], hist, width=np.diff(bin_edges), alig="edge")
-        plt.xlabel("Profit (USD)")
-        plt.ylabel("Frequency")
-        plt.savefig(PROFIT_DISTRIBUTION_FILE_NAME)
+    plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), align="edge")
+    plt.xlabel("Profit (USD)")
+    plt.ylabel("Frequency")
+    plt.savefig(PROFIT_DISTRIBUTION_FILE_NAME)
+    if show_plot:
         plt.show()
     return hist, bin_edges
 
