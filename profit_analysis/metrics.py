@@ -7,14 +7,23 @@ from profit_analysis.column_names import CG_ID_RECEIVED_KEY
 PROFIT_DISTRIBUTION_FILE_NAME = "profit_distribution.png"
 
 
-def plot_profit_distribution(profit: pd.DataFrame):
+def hist_data(data, bins=None):
+    if bins is None:
+        bins = int(np.sqrt(len(data)))
+    hist, bin_edges = np.histogram(data, bins=bins)
+    return hist, bin_edges
+
+
+def plot_profit_distribution(profit: pd.DataFrame, include_plot=False):
     profit = profit["profit_usd"]
-    optimal_bins = int(np.sqrt(len(profit)))
-    plt.hist(column=profit, bins=optimal_bins)
-    plt.xlabel("Profit (USD)")
-    plt.ylabel("Frequency")
-    plt.savefig(PROFIT_DISTRIBUTION_FILE_NAME)
-    plt.show()
+    hist, bin_edges = hist_data(profit)
+    if include_plot:
+        plt.hist(bin_edges[:-1], hist, width=np.diff(bin_edges), alig="edge")
+        plt.xlabel("Profit (USD)")
+        plt.ylabel("Frequency")
+        plt.savefig(PROFIT_DISTRIBUTION_FILE_NAME)
+        plt.show()
+    return hist, bin_edges
 
 
 def compute_profit_skewness(profit: pd.DataFrame):
