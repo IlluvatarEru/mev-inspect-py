@@ -27,7 +27,9 @@ def compute_profit_kurtosis(profit: pd.DataFrame):
 
 def get_top_tokens(profit, chain, top=10):
     profit = add_cg_ids(profit, chain)
-    print(profit.columns)
-    print(profit)
     top_tokens = profit[CG_ID_RECEIVED_KEY].value_counts().sort_values(ascending=False)
+    top_tokens = top_tokens.reset_index()
+    top_tokens.columns = ["Token", "Count"]
+    n_tx = top_tokens["Token"].sum()
+    top_tokens["Frequency"] = top_tokens["Token"] / n_tx
     return top_tokens.head(top)
