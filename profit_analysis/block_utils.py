@@ -19,8 +19,8 @@ def add_block_timestamp(profit_by_block):
 def get_block_timestamp(block):
     trials = 0
     while trials < 3:
+        trials += 1
         try:
-            trials += 1
             block_info = W3.w3_provider.eth.get_block(int(block))
             ts = block_info[TIMESTAMP_KEY]
             dt = datetime.datetime.fromtimestamp(ts)

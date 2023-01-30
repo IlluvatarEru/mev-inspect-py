@@ -2,7 +2,6 @@ import logging
 from typing import Any, Dict, List
 
 from sqlalchemy import orm
-from web3 import Web3
 
 from mev_inspect.arbitrages import get_arbitrages
 from mev_inspect.block import get_classified_traces_from_events
@@ -19,12 +18,10 @@ TRAILING_ZEROS = "000000000000000000000000"
 
 async def inspect_block(
     inspect_db_session: orm.Session,
-    w3: Web3,
     block_number: int,
 ):
     await inspect_many_blocks(
         inspect_db_session,
-        w3,
         block_number,
         block_number + 1,
     )
@@ -32,7 +29,6 @@ async def inspect_block(
 
 async def inspect_many_blocks(
     inspect_db_session: orm.Session,
-    w3: Web3,
     after_block_number: int,
     before_block_number: int,
 ):
@@ -45,7 +41,7 @@ async def inspect_many_blocks(
 
     profits: List[TotalProfits] = []
     async for swaps, liquidations in get_classified_traces_from_events(
-        w3, after_block_number, before_block_number
+        after_block_number, before_block_number
     ):
         arbitrages = get_arbitrages(swaps)
 
