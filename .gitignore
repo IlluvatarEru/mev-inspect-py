@@ -20,6 +20,9 @@ cache
 # k8s
 .helm
 
+# output
+*.out
+
 # env
 .envrc
 
