@@ -30,6 +30,6 @@ def get_top_tokens(profit, chain, top=10):
     top_tokens = profit[CG_ID_RECEIVED_KEY].value_counts().sort_values(ascending=False)
     top_tokens = top_tokens.reset_index()
     top_tokens.columns = ["Token", "Count"]
-    n_tx = top_tokens["Token"].sum()
-    top_tokens["Frequency"] = top_tokens["Token"] / n_tx
+    n_tx = top_tokens["Count"].sum()
+    top_tokens["Frequency"] = top_tokens["Count"] / n_tx
     return top_tokens.head(top)
