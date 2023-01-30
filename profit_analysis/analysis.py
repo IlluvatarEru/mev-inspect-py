@@ -44,6 +44,8 @@ PD_DATETIME_FORMAT = "datetime64[ns]"
 
 
 def analyze_profit(profit):
+    rpc_url = os.environ.get("RPC_URL")
+    chain = get_chain_from_url(rpc_url)
     print("    -------------------------------------------------------------------")
     print("    Profit By Block")
     print(get_profit_by(profit, BLOCK_KEY, True))
@@ -61,7 +63,7 @@ def analyze_profit(profit):
     print(compute_profit_kurtosis(profit))
     print("    -------------------------------------------------------------------")
     print("    Top 10 tokens profit was taken in")
-    print(get_top_tokens(profit))
+    print(get_top_tokens(profit, chain))
     print("    -------------------------------------------------------------------")
     print("    Profit Distribution")
     print(plot_profit_distribution(profit))
