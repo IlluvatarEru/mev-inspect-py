@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from profit_analysis.coingecko import add_cg_ids
-from profit_analysis.column_names import TOKEN_RECEIVED_KEY
+from profit_analysis.column_names import CG_ID_RECEIVED_KEY
 
 PROFIT_DISTRIBUTION_FILE_NAME = "profit_distribution.png"
 
@@ -29,5 +29,5 @@ def get_top_tokens(profit, chain, top=10):
     profit = add_cg_ids(profit, chain)
     print(profit.columns)
     print(profit)
-    top_tokens = profit[TOKEN_RECEIVED_KEY].value_counts().sort_values(ascending=False)
+    top_tokens = profit[CG_ID_RECEIVED_KEY].value_counts().sort_values(ascending=False)
     return top_tokens.head(top)
