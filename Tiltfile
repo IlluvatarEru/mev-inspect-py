@@ -19,7 +19,7 @@ k8s_yaml(configmap_from_dict("mev-inspect-rpc", inputs = {
 }))
 
 k8s_yaml(configmap_from_dict("mev-inspect-rpcs", inputs = {
-    "url" : os.environ["POCKET_ENDPOINTS_LIST"],
+    "url" : os.environ["RPC_ENDPOINTS_LIST"],
 }))
 
 k8s_yaml(configmap_from_dict("mev-inspect-listener-healthcheck", inputs = {
