@@ -41,6 +41,7 @@ class Web3Provider:
 
 def create_web3_async(base_url, web3_rpc_pocket_endpoint, request_timeout=300):
     web3_rpc_url = base_url + web3_rpc_pocket_endpoint
+    print(f"Setting RPC={web3_rpc_url}")
     base_provider = get_base_provider(web3_rpc_url, request_timeout=request_timeout)
     w3_base_provider = web3.Web3(
         base_provider, modules={"eth": (AsyncEth,)}, middlewares=[]
