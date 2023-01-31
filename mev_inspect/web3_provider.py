@@ -10,6 +10,7 @@ from mev_inspect.provider import get_base_provider
 class Web3Provider:
     def __init__(self):
         web3_rpc_pocket_endpoints = os.environ.get("RPC_ENDPOINTS_LIST")
+        print(f"Loading the following endpoints: {web3_rpc_pocket_endpoints}")
         rpc_url = os.environ.get("RPC_URL")
         if rpc_url[-1] == "/":
             rpc_url = rpc_url[:-1]
