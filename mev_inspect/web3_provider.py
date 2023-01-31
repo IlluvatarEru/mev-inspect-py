@@ -13,10 +13,11 @@ class Web3Provider:
         rpc_url = os.environ.get("RPC_URL")
         if rpc_url[-1] == "/":
             rpc_url = rpc_url[:-1]
-        rpc_endpoint_base_url = rpc_url.split("/")[0]
+        rpc_endpoint_base_url = "/".join(rpc_url.split("/")[:-1])
         self.rpc_endpoint_base_url = rpc_endpoint_base_url
+        # default to the RPC URL in memory
         if web3_rpc_pocket_endpoints is None:
-            web3_rpc_urls = [rpc_url.split("/")[1]]
+            web3_rpc_urls = [rpc_url.split("/")[-1]]
         else:
             web3_rpc_urls = ast.literal_eval(web3_rpc_pocket_endpoints)
         self.web3_rpc_urls = web3_rpc_urls
