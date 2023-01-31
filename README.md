@@ -37,7 +37,7 @@ Set an environment variable `RPC_URL` to an RPC for fetching blocks.
 
 mev-inspect-py currently requires a node with support for Erigon traces and receipts (not geth yet 😔).
 
-[pokt.network](https://www.pokt.network/)'s "Ethereum Mainnet Archival with trace calls" is a good hosted option.
+[pokt.network](https://www.pokt.network/)'s "Ethereum Mainnet Archival with trace calls" is a good hosted option for Ethereum. They also provide RPC for other blockchains.
 
 Example:
 
@@ -89,6 +89,21 @@ Inspecting blocks 12914944 to 12914954:
 
 ```
 ./mev inspect-many 12914944 12914954
+```
+
+### Launch historical analysis
+You can launch a historical analysis of blocks by running the below script.
+Do not forget to add the block you want to start from and the number of blocks you want to analyze.
+
+```
+bash scripts/launch_analysis.sh
+```
+
+If the history of blocks is long, your RPC calls might be limited, you can then create an environment variable `RPC_ENDPOINTS_LIST` that the script will rotate between.
+Note that you just need to add the "key" part of your RPC endpoint and the base url will be automatically added.
+eg:
+```
+export RPC_ENDPOINTS_LIST='["a123", "b456", "c789"]' 
 ```
 
 ### Inspect all incoming blocks
