@@ -22,9 +22,9 @@ from profit_analysis.column_names import (
 )
 from profit_analysis.constants import DATA_PATH
 from profit_analysis.token_utils import get_decimals
-from profit_analysis.web3_provider import W3
 
 from mev_inspect.crud.read import read_profit_from_to
+from mev_inspect.web3_provider import W3
 
 """
 Steps:

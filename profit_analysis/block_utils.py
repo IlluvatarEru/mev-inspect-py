@@ -3,7 +3,8 @@ from time import sleep
 
 import pandas as pd
 from profit_analysis.column_names import BLOCK_KEY, TIMESTAMP_KEY
-from profit_analysis.web3_provider import W3
+
+from mev_inspect.web3_provider import W3
 
 
 def add_block_timestamp(profit_by_block):

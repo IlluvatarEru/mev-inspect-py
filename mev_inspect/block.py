@@ -3,7 +3,6 @@ import logging
 from time import sleep
 from typing import Dict, List, Optional, Tuple
 
-from profit_analysis.web3_provider import W3
 from sqlalchemy import orm
 from web3 import Web3
 
@@ -14,6 +13,7 @@ from mev_inspect.schemas.receipts import Receipt
 from mev_inspect.schemas.swaps import Swap
 from mev_inspect.schemas.traces import Trace, TraceType
 from mev_inspect.utils import hex_to_int
+from mev_inspect.web3_provider import W3
 
 logger = logging.getLogger(__name__)
 
