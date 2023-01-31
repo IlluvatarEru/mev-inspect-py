@@ -38,7 +38,6 @@ async def _get_logs_for_topics(after_block, before_block, topics):
                     }
                 ],
             )
-            print(f"logs={logs}")
             return logs["result"]
         except Exception as e:
             print(f"Error, retrying _get_logs_for_topics  - {e}")
