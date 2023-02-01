@@ -63,7 +63,10 @@ class UniswapPricer:
             token_target_address
         )
         print("Success")
-        self._is_target_token0_or_token1 = self.is_target_token0_or_token1()
+        token_n = self.is_target_token0_or_token1()
+        print(f"_is_target_token0_or_token1={token_n}")
+        self._is_target_token0_or_token1 = token_n
+        print("Finished")
 
     def is_target_token0_or_token1(self):
         if self._pair.functions.token0().call() == self._token_target_address:
@@ -114,14 +117,16 @@ class UniswapPricer:
 
 
 def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
-    print(f"cg_id={cg_id}")
+    print(f"pricer for cg_id={cg_id} from={block_number_min}, to ={block_number_max}")
     token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
     token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
     token_address = token_addresses.values[0]
     pricer = UniswapPricer(W3)
     # we use USDC as a base token
     pricer.create(USDC_TOKEN_ADDRESS_ETHEREUM, token_address)
-    blocks = [block_number_min + i for i in range(block_number_max - block_number_min)]
+    blocks = [
+        block_number_min + i for i in range(int(block_number_max - block_number_min))
+    ]
     block_to_price = {}
     for block in blocks:
         price = pricer.get_price_at_block(block)
