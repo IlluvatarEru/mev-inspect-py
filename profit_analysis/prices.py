@@ -76,12 +76,13 @@ class UniswapPricer:
             )
 
     def get_price_at_block(self, block_number: Union[int, float]):
+        print(f"STARTING PRICER block_number={block_number}")
         trials = 0
         while trials < 3:
             trials += 1
             try:
                 reserves = self._pair.functions.getReserves().call(
-                    block_identifier=block_number
+                    block_identifier=int(block_number)
                 )
                 # .functions.getReserves({'blockTag': blockNumber})
                 if self._is_target_token0_or_token1 == 0:
