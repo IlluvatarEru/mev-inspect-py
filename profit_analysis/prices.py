@@ -93,7 +93,7 @@ class UniswapPricer:
             print("Finished")
         except:
             W3.rotate_rpc_url()
-            self.create(token_target_address)
+            await self.create(token_target_address)
 
     def is_target_token0_or_token1(self):
         if self._pair.functions.token0().call() == self._token_target_address:
