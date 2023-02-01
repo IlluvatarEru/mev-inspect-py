@@ -100,7 +100,8 @@ class UniswapPricer:
     def get_price_at_block(self, block_number: Union[int, float]):
         print(f"STARTING PRICER block_number={block_number}")
         trials = 0
-        while trials < 3:
+        n_trials = 3
+        while trials < n_trials:
             trials += 1
             try:
                 reserves = self._pair.functions.getReserves().call(
@@ -127,7 +128,7 @@ class UniswapPricer:
 
                 return float(price)
             except Exception as e:
-                print(f"Error, retrying get_price_at_block  - {e}")
+                print(f"Error ({trials/n_trials}), retrying get_price_at_block  - {e}")
                 sleep(0.05)
         W3.rotate_rpc_url()
         self.create(self._token_target_address)

@@ -19,6 +19,7 @@ def add_block_timestamp(profit_by_block):
 
 def get_block_timestamp(block):
     trials = 0
+    n_trials = 3
     while trials < 3:
         trials += 1
         try:
@@ -27,7 +28,7 @@ def get_block_timestamp(block):
             dt = datetime.datetime.fromtimestamp(ts)
             return dt
         except Exception as e:
-            print(f"Error, retrying {e}")
+            print(f"Error ({trials/n_trials}), retrying {e}")
             sleep(0.05)
     W3.rotate_rpc_url()
     return get_block_timestamp(block)
