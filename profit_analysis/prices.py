@@ -61,6 +61,8 @@ class UniswapPricer:
     def create(self, token_target_address):
         try:
             print(f"Creating Uniswap Pricer for {token_target_address} ")
+            if token_target_address == self._token_base_address:
+                return
             self._token_target_address = token_target_address
             factory = self.w3_provider.w3_provider.eth.contract(
                 address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
@@ -108,6 +110,8 @@ class UniswapPricer:
         while trials < n_trials:
             trials += 1
             try:
+                if self._token_target_address == self._token_base_address:
+                    return 1.0
                 reserves = self._pair.functions.getReserves().call(
                     block_identifier=int(block_number)
                 )
