@@ -41,7 +41,7 @@ async def _get_logs_for_topics(after_block, before_block, topics):
             )
             return logs["result"]
         except Exception as e:
-            print(f"Error ({trials/n_trials}), retrying _get_logs_for_topics  - {e}")
+            print(f"Error ({trials}/{n_trials}), retrying _get_logs_for_topics  - {e}")
             sleep(0.05)
     W3.rotate_rpc_url()
     return await _get_logs_for_topics(after_block, before_block, topics)
@@ -150,7 +150,7 @@ async def get_pool_reserves(addr, pool_address):
             token1 = W3.w3_provider_async.toHex(token1)
             return token0, token1
         except Exception as e:
-            print(f"Error ({trials/n_trials}), retrying  get_pool_reserves  -  {e}")
+            print(f"Error ({trials}/{n_trials}), retrying  get_pool_reserves  -  {e}")
             sleep(0.05)
     W3.rotate_rpc_url()
     return await get_pool_reserves(addr, pool_address)

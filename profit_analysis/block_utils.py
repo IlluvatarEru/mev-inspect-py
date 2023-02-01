@@ -28,7 +28,7 @@ def get_block_timestamp(block):
             dt = datetime.datetime.fromtimestamp(ts)
             return dt
         except Exception as e:
-            print(f"Error ({trials/n_trials}), retrying {e}")
+            print(f"Error ({trials}/{n_trials}), retrying {e}")
             sleep(0.05)
     W3.rotate_rpc_url()
     return get_block_timestamp(block)

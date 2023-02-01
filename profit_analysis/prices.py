@@ -59,33 +59,37 @@ class UniswapPricer:
         return decimals
 
     def create(self, token_target_address):
-        print(f"Creating Uniswap Pricer for {token_target_address} ")
-        self._token_target_address = token_target_address
-        factory = self.w3_provider.w3_provider.eth.contract(
-            address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
-        )
-        pair_address = factory.functions.getPair(
-            self._token_base_address, token_target_address
-        ).call()
-        pair_contract = self.w3_provider.w3_provider.eth.contract(
-            address=pair_address, abi=UNISWAP_V2_PAIR_ABI
-        )
-        print(f"pair_address={pair_address}")
-        self._pair = pair_contract
-        print("Try")
-        self._token_base_decimals = 10 ** self.get_decimals_from_token(
-            self._token_base_address
-        )
-        print("Success")
-        print("Try")
-        self._token_target_decimals = 10 ** self.get_decimals_from_token(
-            token_target_address
-        )
-        print("Success")
-        token_n = self.is_target_token0_or_token1()
-        print(f"_is_target_token0_or_token1={token_n}")
-        self._is_target_token0_or_token1 = token_n
-        print("Finished")
+        try:
+            print(f"Creating Uniswap Pricer for {token_target_address} ")
+            self._token_target_address = token_target_address
+            factory = self.w3_provider.w3_provider.eth.contract(
+                address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
+            )
+            pair_address = factory.functions.getPair(
+                self._token_base_address, token_target_address
+            ).call()
+            pair_contract = self.w3_provider.w3_provider.eth.contract(
+                address=pair_address, abi=UNISWAP_V2_PAIR_ABI
+            )
+            print(f"pair_address={pair_address}")
+            self._pair = pair_contract
+            print("Try")
+            self._token_base_decimals = 10 ** self.get_decimals_from_token(
+                self._token_base_address
+            )
+            print("Success")
+            print("Try")
+            self._token_target_decimals = 10 ** self.get_decimals_from_token(
+                token_target_address
+            )
+            print("Success")
+            token_n = self.is_target_token0_or_token1()
+            print(f"_is_target_token0_or_token1={token_n}")
+            self._is_target_token0_or_token1 = token_n
+            print("Finished")
+        except:
+            W3.rotate_rpc_url()
+            self.create(token_target_address)
 
     def is_target_token0_or_token1(self):
         if self._pair.functions.token0().call() == self._token_target_address:
@@ -128,7 +132,9 @@ class UniswapPricer:
 
                 return float(price)
             except Exception as e:
-                print(f"Error ({trials/n_trials}), retrying get_price_at_block  - {e}")
+                print(
+                    f"Error ({trials}/{n_trials}), retrying get_price_at_block  - {e}"
+                )
                 sleep(0.05)
         W3.rotate_rpc_url()
         self.create(self._token_target_address)
