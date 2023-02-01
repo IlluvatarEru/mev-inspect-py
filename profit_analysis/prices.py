@@ -3,6 +3,8 @@ from time import sleep
 from typing import Union
 
 import pandas as pd
+from profit_analysis.coingecko import get_address_to_coingecko_ids_mapping
+from profit_analysis.column_names import CG_ID_KEY, TOKEN_KEY
 
 from mev_inspect.schemas.prices import USDC_TOKEN_ADDRESS
 from mev_inspect.web3_provider import W3
@@ -98,7 +100,11 @@ class UniswapPricer:
         return self.get_price_at_block(block_number)
 
 
-def get_uniswap_historical_prices(block_number_min, block_number_max, token_address):
+def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
+    token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum")
+    token_address = token_cg_ids.loc[
+        token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY
+    ].values[0]
     pricer = UniswapPricer(W3)
     # we use USDC as a base token
     pricer.create(USDC_TOKEN_ADDRESS, token_address)

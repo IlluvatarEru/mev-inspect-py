@@ -15,13 +15,14 @@ from profit_analysis.constants import DATA_PATH
 TRAILING_ZEROS = "000000000000000000000000"
 
 
-def get_address_to_coingecko_ids_mapping(chain):
+def get_address_to_coingecko_ids_mapping(chain, add_received_and_debt_columns=True):
     token_cg_ids = pd.read_csv(DATA_PATH + "address_to_coingecko_ids.csv")
     token_cg_ids = token_cg_ids.loc[token_cg_ids["chain"] == chain]
-    token_cg_ids[TOKEN_DEBT_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
-    token_cg_ids[CG_ID_RECEIVED_KEY] = token_cg_ids[CG_ID_KEY]
-    token_cg_ids[CG_ID_DEBT_KEY] = token_cg_ids[CG_ID_KEY]
-    token_cg_ids[TOKEN_RECEIVED_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
+    if add_received_and_debt_columns:
+        token_cg_ids[TOKEN_DEBT_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
+        token_cg_ids[CG_ID_RECEIVED_KEY] = token_cg_ids[CG_ID_KEY]
+        token_cg_ids[CG_ID_DEBT_KEY] = token_cg_ids[CG_ID_KEY]
+        token_cg_ids[TOKEN_RECEIVED_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
     return token_cg_ids
 
 
