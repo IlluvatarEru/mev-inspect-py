@@ -85,8 +85,14 @@ class UniswapPricer:
                     token_target_reserves = reserves[1]
                     token_base_reserves = reserves[0]
 
+                print(
+                    f"type self._token_base_decimals={type(self._token_base_decimals)}"
+                )
+                print(f"type token_base_reserves={type(token_base_reserves)}")
+                print(f"self._token_base_decimals={self._token_base_decimals}")
+                print(f"token_base_reserves={token_base_reserves}")
                 price = (
-                    (token_base_reserves / token_target_reserves)
+                    (float(token_base_reserves) / float(token_target_reserves))
                     * self._token_target_decimals
                     / self._token_base_decimals
                 )
