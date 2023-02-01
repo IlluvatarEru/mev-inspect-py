@@ -18,6 +18,7 @@ boto3 = "^1.20.48"
 aiohttp-retry = "^2.4.6"
 pandas = "^1.5.2"
 SQLAlchemy = "1.4.46"
+matplotlib = "^3.6.3"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"

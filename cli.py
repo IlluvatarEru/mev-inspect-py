@@ -6,8 +6,7 @@ from datetime import datetime
 
 import click
 import dramatiq
-from profit_analysis.analysis import analyze_profit, get_profit_by
-from profit_analysis.column_names import BLOCK_KEY
+from profit_analysis.analysis import analyze_profit, compute_usd_profit
 
 from mev_inspect.concurrency import coro
 from mev_inspect.crud.prices import write_prices
@@ -58,16 +57,8 @@ async def analyze_profit_command(
     block_from: int, block_to: int, save_to_csv: bool = False
 ):
     inspect_db_session = get_inspect_session()
-    profit = analyze_profit(inspect_db_session, block_from, block_to, save_to_csv)
-    print("    -------------------------------------------------------------------")
-    print("    Profit By Block")
-    print(get_profit_by(profit, BLOCK_KEY, save_to_csv))
-    print("    -------------------------------------------------------------------")
-    print("    Profit By Day")
-    print(get_profit_by(profit, "date", save_to_csv))
-    print("    -------------------------------------------------------------------")
-    print("    Profit By Category")
-    print(get_profit_by(profit, "category", save_to_csv))
+    profit = compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv)
+    analyze_profit(profit)
 
 
 @cli.command()
