@@ -3,6 +3,7 @@ from time import sleep
 from typing import Union
 
 import pandas as pd
+from profit_analysis.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
 from profit_analysis.coingecko import get_address_to_coingecko_ids_mapping
 from profit_analysis.column_names import BLOCK_KEY, CG_ID_KEY, PRICE_KEY, TOKEN_KEY
 
@@ -18,14 +19,33 @@ ERC20_ABI = json.loads(
     '[ {"constant": true, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "payable": false, "stateMutability": "view", "type": "function"}]'
 )
 UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+QUICKSWAP_FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
 USDC_TOKEN_ADDRESS_ETHEREUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+USDC_TOKEN_ADDRESS_POLYGON = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+
+
+def determine_base_token(chain):
+    chain = chain.lower()
+    switcher = {
+        ETHEREUM_CHAIN: USDC_TOKEN_ADDRESS_ETHEREUM,
+        POLYGON_CHAIN: USDC_TOKEN_ADDRESS_POLYGON,
+    }
+    return switcher.get(chain, f"Invalid chain@ {chain}")
+
+
+def determine_factory(chain):
+    chain = chain.lower()
+    switcher = {ETHEREUM_CHAIN: UNISWAP_FACTORY, POLYGON_CHAIN: QUICKSWAP_FACTORY}
+    return switcher.get(chain, f"Invalid chain@ {chain}")
 
 
 class UniswapPricer:
-    def __init__(self, w3_provider):
+    def __init__(self, w3_provider, chain):
         self.w3_provider = w3_provider
+        self._chain = chain
+        self._factory = determine_factory(chain)
         self._pair = None
-        self._token_base_address = None
+        self._token_base_address = determine_base_token(chain)
         self._token_target_address = None
         self._token_base_decimals = None
         self._token_target_decimals = None
@@ -39,15 +59,14 @@ class UniswapPricer:
         print(f"Decimals for {token} = {decimals}")
         return decimals
 
-    def create(self, token_base_address, token_target_address):
+    def create(self, token_target_address):
         print(f"Creating Uniswap Pricer for {token_target_address} ")
-        self._token_base_address = token_base_address
         self._token_target_address = token_target_address
         factory = self.w3_provider.w3_provider_archival_eth.eth.contract(
-            address=UNISWAP_FACTORY, abi=UNISWAP_V2_FACTORY_ABI
+            address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
         )
         pair_address = factory.functions.getPair(
-            token_base_address, token_target_address
+            self._token_base_address, token_target_address
         ).call()
         pair_contract = self.w3_provider.w3_provider_archival_eth.eth.contract(
             address=pair_address, abi=UNISWAP_V2_PAIR_ABI
@@ -56,7 +75,7 @@ class UniswapPricer:
         self._pair = pair_contract
         print("Try")
         self._token_base_decimals = 10 ** self.get_decimals_from_token(
-            token_base_address
+            self._token_base_address
         )
         print("Success")
         print("Try")
@@ -85,11 +104,9 @@ class UniswapPricer:
         while trials < 3:
             trials += 1
             try:
-                print(f"todayprice={self._pair.functions.getReserves().call()}")
                 reserves = self._pair.functions.getReserves().call(
                     block_identifier=int(block_number)
                 )
-                # .functions.getReserves({'blockTag': blockNumber})
                 if self._is_target_token0_or_token1 == 0:
                     token_target_reserves = reserves[0]
                     token_base_reserves = reserves[1]
@@ -114,19 +131,21 @@ class UniswapPricer:
                 print(f"Error, retrying get_price_at_block  - {e}")
                 sleep(0.05)
         W3.rotate_rpc_url()
-        self.create(self._token_base_address, self._token_target_address)
+        self.create(self._token_target_address)
         return self.get_price_at_block(block_number)
 
 
-def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
+def get_uniswap_historical_prices(
+    block_number_min, block_number_max, cg_id, chain=POLYGON_CHAIN
+):
     print(f"pricer for cg_id={cg_id} from={block_number_min}, to ={block_number_max}")
     token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
     token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
     token_address = token_addresses.values[0]
     if token_address != "NAN":
-        pricer = UniswapPricer(W3)
+        pricer = UniswapPricer(W3, chain)
         # we use USDC as a base token
-        pricer.create(USDC_TOKEN_ADDRESS_ETHEREUM, token_address)
+        pricer.create(token_address)
         blocks = [
             block_number_min + i
             for i in range(int(block_number_max + 1 - block_number_min))

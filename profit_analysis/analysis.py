@@ -6,6 +6,12 @@ from profit_analysis.block_utils import (
     add_block_timestamp,
     find_block_for_timestamp_ethereum,
 )
+from profit_analysis.chains import (
+    ARBITRUM_CHAIN,
+    ETHEREUM_CHAIN,
+    OPTIMISM_CHAIN,
+    POLYGON_CHAIN,
+)
 from profit_analysis.coingecko import add_cg_ids, get_address_to_coingecko_ids_mapping
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
@@ -136,7 +142,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             )
             # get received token prices
             token_prices = get_uniswap_historical_prices(
-                block_number_min, block_number_max, token
+                block_number_min, block_number_max, token, chain
             )
             token_prices = token_prices.rename(columns={PRICE_KEY: PRICE_RECEIVED_KEY})
             token_prices[TOKEN_RECEIVED_KEY] = token
@@ -225,8 +231,9 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 token_prices,
                 on=BLOCK_KEY,
                 how="left",
-                suffixes=("", ""),
+                suffixes=("", "_y"),
             )
+
             print(
                 f"merged with price profit_with_price_token=\n{profit_with_price_token}"
             )
@@ -254,7 +261,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                     debt_tokens_prices,
                     on=BLOCK_KEY,
                     how="left",
-                    suffixes=("", ""),
+                    suffixes=("", "_y"),
                 )
                 # profit_with_price_token = pd.merge_asof(
                 #     profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
@@ -347,12 +354,12 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
 
 def get_chain_from_url(url):
     if "ether" in url:
-        return "ethereum"
+        return ETHEREUM_CHAIN
     elif "poly" in url:
-        return "polygon"
+        return POLYGON_CHAIN
     elif "arb" in url:
-        return "arbitrum"
+        return ARBITRUM_CHAIN
     elif "opti" in url:
-        return "optimism"
+        return OPTIMISM_CHAIN
     else:
         raise Exception(f"Could not determine blockchain from url: {url}")
