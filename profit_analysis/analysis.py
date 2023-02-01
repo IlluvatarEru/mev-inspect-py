@@ -80,6 +80,7 @@ def compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv=Fal
        'profit_usd' ]
     """
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
+    print(profit.head())
     profit = add_block_timestamp(profit)
     chain = get_chain_from_url(W3.w3_provider.provider.endpoint_uri)
     profit = add_cg_ids(profit, chain)
