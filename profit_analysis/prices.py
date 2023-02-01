@@ -144,7 +144,7 @@ class UniswapPricer:
                 sleep(0.05)
         W3.rotate_rpc_url()
         await self.create(self._token_target_address)
-        price = self.get_price_at_block(block_number)
+        price = await self.get_price_at_block(block_number)
         self.block_to_price[block_number] = price
 
 
