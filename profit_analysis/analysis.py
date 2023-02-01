@@ -221,7 +221,11 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             # token_prices[TIMESTAMP_KEY] = pd.to_datetime(token_prices[TIMESTAMP_KEY])
 
             profit_with_price_token = pd.merge(
-                profit_by_received_token, token_prices, on=BLOCK_KEY, how="left"
+                profit_by_received_token,
+                token_prices,
+                on=BLOCK_KEY,
+                how="left",
+                suffixes=("", ""),
             )
             print(
                 f"merged with price profit_with_price_token=\n{profit_with_price_token}"
@@ -250,6 +254,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                     debt_tokens_prices,
                     on=BLOCK_KEY,
                     how="left",
+                    suffixes=("", ""),
                 )
                 # profit_with_price_token = pd.merge_asof(
                 #     profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
