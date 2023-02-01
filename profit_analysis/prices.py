@@ -4,8 +4,7 @@ from typing import Union
 
 import pandas as pd
 from profit_analysis.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
-from profit_analysis.coingecko import get_address_to_coingecko_ids_mapping
-from profit_analysis.column_names import BLOCK_KEY, CG_ID_KEY, PRICE_KEY, TOKEN_KEY
+from profit_analysis.column_names import BLOCK_KEY, PRICE_KEY
 
 from mev_inspect.web3_provider import W3
 
@@ -52,7 +51,7 @@ class UniswapPricer:
         self._is_target_token0_or_token1 = None
 
     def get_decimals_from_token(self, token):
-        contract = self.w3_provider.w3_provider_archival_eth.eth.contract(
+        contract = self.w3_provider.w3_provider.eth.contract(
             address=token, abi=ERC20_ABI
         )
         decimals = contract.functions.decimals().call()
@@ -62,13 +61,13 @@ class UniswapPricer:
     def create(self, token_target_address):
         print(f"Creating Uniswap Pricer for {token_target_address} ")
         self._token_target_address = token_target_address
-        factory = self.w3_provider.w3_provider_archival_eth.eth.contract(
+        factory = self.w3_provider.w3_provider.eth.contract(
             address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
         )
         pair_address = factory.functions.getPair(
             self._token_base_address, token_target_address
         ).call()
-        pair_contract = self.w3_provider.w3_provider_archival_eth.eth.contract(
+        pair_contract = self.w3_provider.w3_provider.eth.contract(
             address=pair_address, abi=UNISWAP_V2_PAIR_ABI
         )
         print(f"pair_address={pair_address}")
@@ -136,12 +135,13 @@ class UniswapPricer:
 
 
 def get_uniswap_historical_prices(
-    block_number_min, block_number_max, cg_id, chain=POLYGON_CHAIN
+    block_number_min, block_number_max, token, chain=POLYGON_CHAIN
 ):
-    print(f"pricer for cg_id={cg_id} from={block_number_min}, to ={block_number_max}")
-    token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
-    token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
-    token_address = token_addresses.values[0]
+    # print(f"pricer for token={token} from={block_number_min}, to ={block_number_max}")
+    # token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
+    # token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
+    # token_address = token_addresses.values[0]
+    token_address = token
     if token_address != "NAN":
         pricer = UniswapPricer(W3, chain)
         # we use USDC as a base token

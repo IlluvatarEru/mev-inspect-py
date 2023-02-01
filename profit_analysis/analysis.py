@@ -1,11 +1,7 @@
-import datetime
 import os
 
 import pandas as pd
-from profit_analysis.block_utils import (
-    add_block_timestamp,
-    find_block_for_timestamp_ethereum,
-)
+from profit_analysis.block_utils import add_block_timestamp
 from profit_analysis.chains import (
     ARBITRUM_CHAIN,
     ETHEREUM_CHAIN,
@@ -113,20 +109,20 @@ def get_usd_profit(profit, chain, save_to_csv=False):
     profit[TIMESTAMP_KEY] = pd.to_datetime(
         profit[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
     )
-    dates = pd.to_datetime(profit[TIMESTAMP_KEY].unique())
-    offset_minutes = 10
-    date_min = int(
-        (dates.min() - datetime.timedelta(minutes=offset_minutes)).timestamp()
-    )
-    date_max = int(
-        (dates.max() + datetime.timedelta(minutes=offset_minutes)).timestamp()
-    )
-    block_number_min = find_block_for_timestamp_ethereum(
-        W3.w3_provider_archival_eth, date_min
-    )
-    block_number_max = find_block_for_timestamp_ethereum(
-        W3.w3_provider_archival_eth, date_max
-    )
+    # dates = pd.to_datetime(profit[TIMESTAMP_KEY].unique())
+    # offset_minutes = 10
+    # date_min = int(
+    #     (dates.min() - datetime.timedelta(minutes=offset_minutes)).timestamp()
+    # )
+    # date_max = int(
+    #     (dates.max() + datetime.timedelta(minutes=offset_minutes)).timestamp()
+    # )
+    # block_number_min = find_block_for_timestamp_ethereum(
+    #     W3.w3_provider_archival_eth, date_min
+    # )
+    # block_number_max = find_block_for_timestamp_ethereum(
+    #     W3.w3_provider_archival_eth, date_max
+    # )
     failures = {}
     print(f"profit=\n{profit}")
     for i in range(len(tokens)):
@@ -141,8 +137,14 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
             )
             # get received token prices
+            # token_prices = get_uniswap_historical_prices(
+            #     block_number_min, block_number_max, token, chain
+            # )
             token_prices = get_uniswap_historical_prices(
-                block_number_min, block_number_max, token, chain
+                profit_by_received_token[BLOCK_KEY].min(),
+                profit_by_received_token[BLOCK_KEY].max(),
+                token_address,
+                chain,
             )
             token_prices = token_prices.rename(columns={PRICE_KEY: PRICE_RECEIVED_KEY})
             token_prices[TOKEN_RECEIVED_KEY] = token
@@ -165,9 +167,19 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 cg_id_debt = debt_cg_ids[k]
                 print(f"cg_id_debt={cg_id_debt}")
                 if cg_id_debt != "nan":
+                    token_address_debt = profit.loc[
+                        profit[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
+                    ].values[0]
+
                     debt_token_prices = get_uniswap_historical_prices(
-                        block_number_min, block_number_max, cg_id_debt
+                        profit_by_received_token[BLOCK_KEY].min(),
+                        profit_by_received_token[BLOCK_KEY].max(),
+                        token_address_debt,
+                        chain,
                     )
+                    # debt_token_prices = get_uniswap_historical_prices(
+                    #     block_number_min, block_number_max, cg_id_debt
+                    # )
                     print(f"debt_token_prices=\n{debt_token_prices.head()}")
                     debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
                     debt_token = mapping.loc[
