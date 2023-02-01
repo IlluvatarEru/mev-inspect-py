@@ -1,3 +1,4 @@
+import asyncio
 import json
 from time import sleep
 from typing import Union
@@ -49,39 +50,40 @@ class UniswapPricer:
         self._token_base_decimals = None
         self._token_target_decimals = None
         self._is_target_token0_or_token1 = None
+        self.block_to_price = {}
 
-    def get_decimals_from_token(self, token):
-        contract = self.w3_provider.w3_provider.eth.contract(
+    async def get_decimals_from_token(self, token):
+        contract = await self.w3_provider.w3_provider_async.eth.contract(
             address=token, abi=ERC20_ABI
         )
         decimals = contract.functions.decimals().call()
         print(f"Decimals for {token} = {decimals}")
         return decimals
 
-    def create(self, token_target_address):
+    async def create(self, token_target_address):
         try:
             print(f"Creating Uniswap Pricer for {token_target_address} ")
             if token_target_address == self._token_base_address:
                 return
             self._token_target_address = token_target_address
-            factory = self.w3_provider.w3_provider.eth.contract(
+            factory = await self.w3_provider.w3_provider_async.eth.contract(
                 address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
             )
             pair_address = factory.functions.getPair(
                 self._token_base_address, token_target_address
             ).call()
-            pair_contract = self.w3_provider.w3_provider.eth.contract(
+            pair_contract = await self.w3_provider.w3_provider_async.eth.contract(
                 address=pair_address, abi=UNISWAP_V2_PAIR_ABI
             )
             print(f"pair_address={pair_address}")
             self._pair = pair_contract
             print("Try")
-            self._token_base_decimals = 10 ** self.get_decimals_from_token(
+            self._token_base_decimals = 10 ** await self.get_decimals_from_token(
                 self._token_base_address
             )
             print("Success")
             print("Try")
-            self._token_target_decimals = 10 ** self.get_decimals_from_token(
+            self._token_target_decimals = 10 ** await self.get_decimals_from_token(
                 token_target_address
             )
             print("Success")
@@ -103,7 +105,7 @@ class UniswapPricer:
                 f"Target token ({self._token_target_address}) not in contract pair {self._pair}"
             )
 
-    def get_price_at_block(self, block_number: Union[int, float]):
+    async def get_price_at_block(self, block_number: Union[int, float]):
         print(f"STARTING PRICER block_number={block_number}")
         trials = 0
         n_trials = 3
@@ -141,33 +143,46 @@ class UniswapPricer:
                 )
                 sleep(0.05)
         W3.rotate_rpc_url()
-        self.create(self._token_target_address)
-        return self.get_price_at_block(block_number)
+        await self.create(self._token_target_address)
+        price = self.get_price_at_block(block_number)
+        self.block_to_price[block_number] = price
+
+
+async def safe_get_price(pricer, block, max_concurrency):
+    async with max_concurrency:
+        print(block)
+        return await pricer.get_price_at_block(block)
 
 
 def get_uniswap_historical_prices(
-    block_number_min, block_number_max, token, chain=POLYGON_CHAIN
+    block_number_min, block_number_max, token_address, chain=POLYGON_CHAIN
 ):
+    # TODO: get only the blocks, not every nthing
     # print(f"pricer for token={token} from={block_number_min}, to ={block_number_max}")
     # token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
     # token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
     # token_address = token_addresses.values[0]
-    token_address = token
     if token_address != "NAN":
         pricer = UniswapPricer(W3, chain)
         # we use USDC as a base token
-        pricer.create(token_address)
+        await pricer.create(token_address)
         blocks = [
             block_number_min + i
             for i in range(int(block_number_max + 1 - block_number_min))
         ]
         print(blocks)
-        block_to_price = {}
-        for block in blocks:
-            print(block)
-            price = pricer.get_price_at_block(block)
-            block_to_price[block] = price
-        print(f"block_to_price={block_to_price}")
+        tasks = []
+        max_c = 8
+        max_concurrency = asyncio.Semaphore(max_c)
+        for block in range(block_number_min, block_number_max, max_c):
+            for block_j in range(block, block + max_c):
+                tasks.append(
+                    asyncio.ensure_future(
+                        safe_get_price(pricer, block_j, max_concurrency)
+                    )
+                )
+        await asyncio.gather(*tasks)
+        block_to_price = pricer.block_to_price
         return pd.DataFrame(
             list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
         )
