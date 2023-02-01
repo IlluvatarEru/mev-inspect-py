@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import pandas as pd
@@ -117,13 +118,19 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 profit_by_received_token[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
             )
 
-            block_number_min = profit_by_received_token[BLOCK_KEY].min()
-            block_number_max = profit_by_received_token[BLOCK_KEY].max()
+            dates = pd.to_datetime(profit_by_received_token[TIMESTAMP_KEY].unique())
+            # @TODO: What is an optimal value here?
+            # looks like sometimes there is no price for hours???
+            offset_minutes = 30
+            date_min = int(
+                (dates.min() - datetime.timedelta(minutes=offset_minutes)).timestamp()
+            )
+            date_max = int(
+                (dates.max() + datetime.timedelta(minutes=offset_minutes)).timestamp()
+            )
 
             # get received token prices
-            token_prices = get_uniswap_historical_prices(
-                block_number_min, block_number_max, token
-            )
+            token_prices = get_uniswap_historical_prices(date_min, date_max, token)
             token_prices = token_prices.rename(columns={PRICE_KEY: PRICE_RECEIVED_KEY})
             token_prices[TOKEN_RECEIVED_KEY] = token
 
@@ -143,7 +150,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 print(f"cg_id_debt={cg_id_debt}")
                 if cg_id_debt != "nan":
                     debt_token_prices = get_uniswap_historical_prices(
-                        block_number_min, block_number_max, cg_id_debt
+                        date_min, date_max, cg_id_debt
                     )
                     print(f"debt_token_prices=\n{debt_token_prices.head()}")
                     debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt

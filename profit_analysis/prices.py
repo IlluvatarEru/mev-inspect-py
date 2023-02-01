@@ -3,6 +3,7 @@ from time import sleep
 from typing import Union
 
 import pandas as pd
+from profit_analysis.block_utils import find_block_for_timestamp_ethereum
 from profit_analysis.coingecko import get_address_to_coingecko_ids_mapping
 from profit_analysis.column_names import CG_ID_KEY, TOKEN_KEY
 
@@ -118,8 +119,14 @@ class UniswapPricer:
         return self.get_price_at_block(block_number)
 
 
-def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
-    print(f"pricer for cg_id={cg_id} from={block_number_min}, to ={block_number_max}")
+def get_uniswap_historical_prices(date_min, date_max, cg_id):
+    print(f"pricer for cg_id={cg_id} from={date_min}, to ={date_max}")
+    block_number_min = find_block_for_timestamp_ethereum(
+        W3.w3_provider_archival_eth, date_min
+    )
+    block_number_max = find_block_for_timestamp_ethereum(
+        W3.w3_provider_archival_eth, date_max
+    )
     token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
     token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
     token_address = token_addresses.values[0]
