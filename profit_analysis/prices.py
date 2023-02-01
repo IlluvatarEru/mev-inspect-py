@@ -101,10 +101,12 @@ class UniswapPricer:
 
 
 def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
-    token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum")
-    token_address = token_cg_ids.loc[
-        token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY
-    ].values[0]
+    print(f"cg_id={cg_id}")
+    token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
+    print(f"token_cg_ids=\n{token_cg_ids}")
+    token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
+    print(f"token_addresses={token_addresses}")
+    token_address = token_addresses.values[0]
     pricer = UniswapPricer(W3)
     # we use USDC as a base token
     pricer.create(USDC_TOKEN_ADDRESS, token_address)
