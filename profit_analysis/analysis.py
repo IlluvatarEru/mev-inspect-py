@@ -182,7 +182,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                         token_address_debt_lower, chain
                     )
 
-                    debt_token_prices = get_uniswap_historical_prices(
+                    debt_token_prices = await get_uniswap_historical_prices(
                         profit_by_received_token[BLOCK_KEY].min(),
                         profit_by_received_token[BLOCK_KEY].max(),
                         token_address_debt,

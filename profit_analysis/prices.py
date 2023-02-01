@@ -61,38 +61,51 @@ class UniswapPricer:
         return decimals
 
     async def create(self, token_target_address):
-        try:
-            print(f"Creating Uniswap Pricer for {token_target_address} ")
-            if token_target_address != self._token_base_address:
-                self._token_target_address = token_target_address
-                factory = await self.w3_provider.w3_provider_async.eth.contract(
-                    address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
-                )
-                pair_address = factory.functions.getPair(
-                    self._token_base_address, token_target_address
-                ).call()
-                pair_contract = await self.w3_provider.w3_provider_async.eth.contract(
-                    address=pair_address, abi=UNISWAP_V2_PAIR_ABI
-                )
-                print(f"pair_address={pair_address}")
-                self._pair = pair_contract
-                print("Try")
-                self._token_base_decimals = 10 ** await self.get_decimals_from_token(
-                    self._token_base_address
-                )
-                print("Success")
-                print("Try")
-                self._token_target_decimals = 10 ** await self.get_decimals_from_token(
-                    token_target_address
-                )
-                print("Success")
-                token_n = await self.is_target_token0_or_token1()
-                print(f"_is_target_token0_or_token1={token_n}")
-                self._is_target_token0_or_token1 = token_n
-                print("Finished")
-        except:
-            W3.rotate_rpc_url()
-            await self.create(token_target_address)
+        trials = 0
+        n_trials = 3
+        while trials < 3:
+            trials += 1
+            try:
+                print(f"Creating Uniswap Pricer for {token_target_address} ")
+                if token_target_address != self._token_base_address:
+                    self._token_target_address = token_target_address
+                    print("Set address")
+                    factory = await self.w3_provider.w3_provider_async.eth.contract(
+                        address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
+                    )
+                    print("factory done")
+                    pair_address = factory.functions.getPair(
+                        self._token_base_address, token_target_address
+                    ).call()
+                    print("pair_contract")
+                    pair_contract = (
+                        await self.w3_provider.w3_provider_async.eth.contract(
+                            address=pair_address, abi=UNISWAP_V2_PAIR_ABI
+                        )
+                    )
+                    print(f"pair_address={pair_address}")
+                    self._pair = pair_contract
+                    print("Try")
+                    self._token_base_decimals = (
+                        10
+                        ** await self.get_decimals_from_token(self._token_base_address)
+                    )
+                    print("Success")
+                    print("Try")
+                    self._token_target_decimals = (
+                        10 ** await self.get_decimals_from_token(token_target_address)
+                    )
+                    print("Success")
+                    token_n = await self.is_target_token0_or_token1()
+                    print(f"_is_target_token0_or_token1={token_n}")
+                    self._is_target_token0_or_token1 = token_n
+                    print("Finished")
+                    return
+            except Exception as e:
+                print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
+                sleep(0.05)
+        W3.rotate_rpc_url()
+        return await self.create(token_target_address)
 
     async def is_target_token0_or_token1(self):
         if await self._pair.functions.token0().call() == self._token_target_address:
