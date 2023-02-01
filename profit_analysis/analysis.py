@@ -75,7 +75,9 @@ def analyze_profit(profit):
     print(plot_profit_distribution(profit))
 
 
-def compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
+async def compute_usd_profit(
+    inspect_db_session, block_from, block_to, save_to_csv=False
+):
     """
 
     :return: pd.DataFrame, with columns = ['block_number', 'timestamp', 'date', 'transaction_hash',
@@ -88,12 +90,12 @@ def compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv=Fal
     profit = add_block_timestamp(profit)
     chain = get_chain_from_url(W3.w3_provider.provider.endpoint_uri)
     profit = add_cg_ids(profit, chain)
-    profit = get_usd_profit(profit, chain, save_to_csv)
+    profit = await get_usd_profit(profit, chain, save_to_csv)
     print(profit)
     return profit
 
 
-def get_usd_profit(profit, chain, save_to_csv=False):
+async def get_usd_profit(profit, chain, save_to_csv=False):
     """
     For each token involved in mev transactions, will get its price at the time of the transaction and
     compute the profit of each mev transaction.
@@ -145,7 +147,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             # token_prices = get_uniswap_historical_prices(
             #     block_number_min, block_number_max, token, chain
             # )
-            token_prices = get_uniswap_historical_prices(
+            token_prices = await get_uniswap_historical_prices(
                 profit_by_received_token[BLOCK_KEY].min(),
                 profit_by_received_token[BLOCK_KEY].max(),
                 token_address,

@@ -154,7 +154,7 @@ async def safe_get_price(pricer, block, max_concurrency):
         return await pricer.get_price_at_block(block)
 
 
-def get_uniswap_historical_prices(
+async def get_uniswap_historical_prices(
     block_number_min, block_number_max, token_address, chain=POLYGON_CHAIN
 ):
     # TODO: get only the blocks, not every nthing

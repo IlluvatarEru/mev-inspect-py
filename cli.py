@@ -57,7 +57,9 @@ async def analyze_profit_command(
     block_from: int, block_to: int, save_to_csv: bool = False
 ):
     inspect_db_session = get_inspect_session()
-    profit = compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv)
+    profit = await compute_usd_profit(
+        inspect_db_session, block_from, block_to, save_to_csv
+    )
     analyze_profit(profit)
 
 
