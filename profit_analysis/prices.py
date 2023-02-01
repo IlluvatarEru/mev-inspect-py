@@ -6,7 +6,6 @@ import pandas as pd
 from profit_analysis.coingecko import get_address_to_coingecko_ids_mapping
 from profit_analysis.column_names import CG_ID_KEY, TOKEN_KEY
 
-from mev_inspect.schemas.prices import USDC_TOKEN_ADDRESS
 from mev_inspect.web3_provider import W3
 
 UNISWAP_V2_PAIR_ABI = json.loads(
@@ -19,6 +18,7 @@ ERC20_ABI = json.loads(
     '[ {"constant": true, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "payable": false, "stateMutability": "view", "type": "function"}]'
 )
 UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+USDC_TOKEN_ADDRESS_ETHEREUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 
 
 class UniswapPricer:
@@ -109,7 +109,7 @@ def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
     token_address = token_addresses.values[0]
     pricer = UniswapPricer(W3)
     # we use USDC as a base token
-    pricer.create(USDC_TOKEN_ADDRESS, token_address)
+    pricer.create(USDC_TOKEN_ADDRESS_ETHEREUM, token_address)
     blocks = [block_number_min + i for i in range(block_number_max - block_number_min)]
     block_to_price = {}
     for block in blocks:
