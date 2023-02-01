@@ -11,9 +11,8 @@ blockTo=$((blockFrom+nBlocks))
 startDate=$(date +%s)
 startDateFormatted=$(date -d @$startDate)
 echo "Starting analysis from block=${blockFrom} for ${nBlocks} blocks on the ${startDateFormatted}"
-#./mev inspect-many $blockFrom $blockTo
-#./mev analyze-profit $blockFrom $blockTo True
-sleep 10
+./mev inspect-many $blockFrom $blockTo
+./mev analyze-profit $blockFrom $blockTo True
 endDate=$(date +%s)
 endDateFormatted=$(date -d @endDate)
 echo "Finished analysis of ${nBlocks} blocks on the ${endDateFormatted}. It took $(( (endDate - startDate)/60 )) minutes."
