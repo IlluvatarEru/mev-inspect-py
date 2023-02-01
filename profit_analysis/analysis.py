@@ -216,11 +216,15 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 profit_by_received_token[AMOUNT_DEBT_KEY]
             )
 
+            print(f"post decimal profit_by_received_token=\n{profit_by_received_token}")
             # set up timestamps for merge
             # token_prices[TIMESTAMP_KEY] = pd.to_datetime(token_prices[TIMESTAMP_KEY])
 
             profit_with_price_token = pd.merge(
-                profit_by_received_token, token_prices, on=BLOCK_KEY, how="outer"
+                profit_by_received_token, token_prices, on=BLOCK_KEY, how="left"
+            )
+            print(
+                f"merged with price profit_with_price_token=\n{profit_with_price_token}"
             )
             # merge received token prices
             # profit_with_price_token = pd.merge_asof(
@@ -236,6 +240,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             # )
 
             if len(debt_tokens_prices) > 0:
+                print("len>0????")
                 debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
                     debt_tokens_prices[TIMESTAMP_KEY]
                 )
@@ -244,7 +249,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                     profit_with_price_token,
                     debt_tokens_prices,
                     on=BLOCK_KEY,
-                    how="outer",
+                    how="left",
                 )
                 # profit_with_price_token = pd.merge_asof(
                 #     profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
@@ -264,9 +269,11 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 profit_with_price_token[PRICE_DEBT_KEY] = 0
 
             profit_with_price_token["category"] = category
+            print(f"profit_with_price_token with category={profit_with_price_token}")
             profit_with_price_tokens = pd.concat(
                 [profit_with_price_tokens, profit_with_price_token]
             )
+            print(f"concatenated={profit_with_price_tokens}")
         except Exception as e:
             # @TODO: save into list to add later
             print("    Failed for token=", token_address)
@@ -275,6 +282,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             break
     print("Finished processing all tokens")
     print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
+    print(f"cols={profit_with_price_tokens.columns()}")
     print(
         f"profit_with_price_tokens[PRICE_DEBT_KEY]=\n{profit_with_price_tokens[PRICE_DEBT_KEY]}"
     )
@@ -301,16 +309,16 @@ def get_usd_profit(profit, chain, save_to_csv=False):
         )
     return profit_with_price_tokens[
         [
-            "block_number",
-            "timestamp",
+            BLOCK_KEY,
+            TIMESTAMP_KEY,
             "date",
             "transaction_hash",
-            "amount_received",
-            "token_received",
-            "price_received",
-            "amount_debt",
-            "token_debt",
-            "price_debt",
+            AMOUNT_RECEIVED_KEY,
+            TOKEN_RECEIVED_KEY,
+            PRICE_RECEIVED_KEY,
+            AMOUNT_DEBT_KEY,
+            TOKEN_DEBT_KEY,
+            PRICE_DEBT_KEY,
             "profit_usd",
             "category",
         ]
