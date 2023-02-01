@@ -112,30 +112,32 @@ class UniswapPricer:
             trials += 1
             try:
                 if self._token_target_address == self._token_base_address:
-                    return 1.0
-                reserves = self._pair.functions.getReserves().call(
-                    block_identifier=int(block_number)
-                )
-                if self._is_target_token0_or_token1 == 0:
-                    token_target_reserves = reserves[0]
-                    token_base_reserves = reserves[1]
+                    price = 1.0
                 else:
-                    token_target_reserves = reserves[1]
-                    token_base_reserves = reserves[0]
+                    reserves = self._pair.functions.getReserves().call(
+                        block_identifier=int(block_number)
+                    )
+                    if self._is_target_token0_or_token1 == 0:
+                        token_target_reserves = reserves[0]
+                        token_base_reserves = reserves[1]
+                    else:
+                        token_target_reserves = reserves[1]
+                        token_base_reserves = reserves[0]
 
-                print(
-                    f"type self._token_base_decimals={type(self._token_base_decimals)}"
-                )
-                print(f"type token_base_reserves={type(token_base_reserves)}")
-                print(f"self._token_base_decimals={self._token_base_decimals}")
-                print(f"token_base_reserves={token_base_reserves}")
-                price = (
-                    (float(token_base_reserves) / float(token_target_reserves))
-                    * self._token_target_decimals
-                    / self._token_base_decimals
-                )
+                    print(
+                        f"type self._token_base_decimals={type(self._token_base_decimals)}"
+                    )
+                    print(f"type token_base_reserves={type(token_base_reserves)}")
+                    print(f"self._token_base_decimals={self._token_base_decimals}")
+                    print(f"token_base_reserves={token_base_reserves}")
+                    price = (
+                        (float(token_base_reserves) / float(token_target_reserves))
+                        * self._token_target_decimals
+                        / self._token_base_decimals
+                    )
 
-                return float(price)
+                price = float(price)
+                self.block_to_price[block_number] = price
             except Exception as e:
                 print(
                     f"Error ({trials}/{n_trials}), retrying get_price_at_block  - {e}"
@@ -143,8 +145,7 @@ class UniswapPricer:
                 sleep(0.05)
         W3.rotate_rpc_url()
         await self.create(self._token_target_address)
-        price = await self.get_price_at_block(block_number)
-        self.block_to_price[block_number] = price
+        return await self.get_price_at_block(block_number)
 
 
 async def safe_get_price(pricer, block, max_concurrency):
