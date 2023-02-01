@@ -77,10 +77,7 @@ def create_web3_archival_ethereum(pokt_endpoint_key=None):
     )
     w3_provider = web3.Web3(web3.Web3.HTTPProvider(web3_rpc_url))
     w3_provider.middleware_onion.inject(web3.middleware.geth_poa_middleware, layer=0)
-    if w3_provider.isConnected():
-        return w3_provider
-    else:
-        raise Exception("Failed to connect")
+    return w3_provider
 
 
 W3 = Web3Provider()
