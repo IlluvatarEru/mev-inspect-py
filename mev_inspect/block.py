@@ -13,6 +13,7 @@ from mev_inspect.schemas.receipts import Receipt
 from mev_inspect.schemas.swaps import Swap
 from mev_inspect.schemas.traces import Trace, TraceType
 from mev_inspect.utils import hex_to_int
+from mev_inspect.web3_provider import W3
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +23,12 @@ UNI_TOKEN_0 = "0x0dfe1681"
 UNI_TOKEN_1 = "0xd21220a7"
 
 
-async def _get_logs_for_topics(base_provider, after_block, before_block, topics):
-    while True:
+async def _get_logs_for_topics(after_block, before_block, topics):
+    trials = 0
+    while trials < 3:
+        trials += 1
         try:
-            logs = await base_provider.make_request(
+            logs = await W3.w3_provider_async.provider.make_request(
                 "eth_getLogs",
                 [
                     {
@@ -35,11 +38,12 @@ async def _get_logs_for_topics(base_provider, after_block, before_block, topics)
                     }
                 ],
             )
-
             return logs["result"]
         except Exception as e:
-            print(f"Error, retrying {e}")
+            print(f"Error, retrying _get_logs_for_topics  - {e}")
             sleep(0.05)
+    W3.rotate_rpc_url()
+    return await _get_logs_for_topics(after_block, before_block, topics)
 
 
 def _logs_by_tx(logs):
@@ -72,7 +76,7 @@ def get_liquidation(data):
     )
 
 
-async def classify_logs(logs, pool_reserves, w3):
+async def classify_logs(logs, pool_reserves):
     cswaps = []
     cliquidations = []
 
@@ -90,19 +94,8 @@ async def classify_logs(logs, pool_reserves, w3):
                 token0, token1 = pool_reserves[pool_address]
             else:
                 addr = Web3.toChecksumAddress(pool_address)
-                while True:
-                    try:
-                        token0, token1 = await asyncio.gather(
-                            w3.eth.call({"to": addr, "data": UNI_TOKEN_0}),
-                            w3.eth.call({"to": addr, "data": UNI_TOKEN_1}),
-                        )
-                        token0 = w3.toHex(token0)
-                        token1 = w3.toHex(token1)
-                        pool_reserves[pool_address] = (token0, token1)
-                        break
-                    except Exception as e:
-                        print(f"Error, retrying {e}")
-                        sleep(0.05)
+                token0, token1 = await get_pool_reserves(addr, pool_address)
+                pool_reserves[pool_address] = (token0, token1)
 
             am0in, am1in, am0out, am1out = get_swap(log["data"])
             swap = Swap(
@@ -142,13 +135,29 @@ async def classify_logs(logs, pool_reserves, w3):
     return cswaps, cliquidations
 
 
+async def get_pool_reserves(addr, pool_address):
+    trials = 0
+    while trials < 3:
+        trials += 1
+        try:
+            token0, token1 = await asyncio.gather(
+                W3.w3_provider_async.eth.call({"to": addr, "data": UNI_TOKEN_0}),
+                W3.w3_provider_async.eth.call({"to": addr, "data": UNI_TOKEN_1}),
+            )
+            token0 = W3.w3_provider_async.toHex(token0)
+            token1 = W3.w3_provider_async.toHex(token1)
+            return token0, token1
+        except Exception as e:
+            print(f"Error, retrying  get_pool_reserves  -  {e}")
+            sleep(0.05)
+    W3.rotate_rpc_url()
+    return await get_pool_reserves(addr, pool_address)
+
+
 reserves: Dict[str, Tuple[str, str]] = dict()
 
 
-async def get_classified_traces_from_events(
-    w3: Web3, after_block: int, before_block: int
-):
-    base_provider = w3.provider
+async def get_classified_traces_from_events(after_block: int, before_block: int):
     start = after_block
     stride = 300
     while start < before_block:
@@ -157,11 +166,11 @@ async def get_classified_traces_from_events(
         start += stride
         print("fetching from node...", begin, end, flush=True)
         all_logs = await _get_logs_for_topics(
-            base_provider, begin, end, [[TOPIC_SWAP, TOPIC_LIQUIDATION]]
+            begin, end, [[TOPIC_SWAP, TOPIC_LIQUIDATION]]
         )
         logs_by_tx = _logs_by_tx(all_logs)
         for tx in logs_by_tx.keys():
-            yield await classify_logs(logs_by_tx[tx], reserves, w3)
+            yield await classify_logs(logs_by_tx[tx], reserves)
 
 
 async def get_latest_block_number(base_provider) -> int:

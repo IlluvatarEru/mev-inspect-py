@@ -16,7 +16,6 @@ from mev_inspect.provider import get_base_provider
 
 logger = logging.getLogger(__name__)
 
-
 # add missing parity methods
 # this is a bit gross
 AsyncEth.trace_block = trace_block
@@ -54,7 +53,6 @@ class MEVInspector:
     ):
         return await inspect_block(
             inspect_db_session,
-            self.w3,
             block,
         )
 
@@ -79,7 +77,7 @@ class MEVInspector:
                     )
                 )
             )
-        logger.info(f"Gathered {before_block-after_block} blocks to inspect")
+        logger.info(f"Gathered {before_block - after_block} blocks to inspect")
         try:
             await asyncio.gather(*tasks)
         except CancelledError:
@@ -98,7 +96,6 @@ class MEVInspector:
         async with self.max_concurrency:
             return await inspect_many_blocks(
                 inspect_db_session,
-                self.w3,
                 after_block_number,
                 before_block_number,
             )

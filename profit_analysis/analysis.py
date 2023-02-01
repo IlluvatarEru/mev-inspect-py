@@ -1,8 +1,6 @@
 import datetime
-import os
 
 import pandas as pd
-import web3
 from profit_analysis.block_utils import add_block_timestamp
 from profit_analysis.coingecko import (
     add_cg_ids,
@@ -26,6 +24,7 @@ from profit_analysis.constants import DATA_PATH
 from profit_analysis.token_utils import get_decimals
 
 from mev_inspect.crud.read import read_profit_from_to
+from mev_inspect.web3_provider import W3
 
 """
 Steps:
@@ -38,9 +37,8 @@ PD_DATETIME_FORMAT = "datetime64[ns]"
 
 def analyze_profit(inspect_db_session, block_from, block_to, save_to_csv=False):
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
-    w3 = create_web3()
-    profit = add_block_timestamp(w3, profit)
-    chain = get_chain_from_url(w3.provider.endpoint_uri)
+    profit = add_block_timestamp(profit)
+    chain = get_chain_from_url(W3.w3_provider.provider.endpoint_uri)
     profit = add_cg_ids(profit, chain)
     profit = get_usd_profit(profit, chain, save_to_csv)
     print(profit)
@@ -255,16 +253,6 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
         print(file_name)
         profit_by_block.to_csv(file_name, index=False)
     return profit_by_block
-
-
-def create_web3():
-    web3_rpc_url = os.environ.get("RPC_URL")
-    w3_provider = web3.Web3(web3.Web3.HTTPProvider(web3_rpc_url))
-    w3_provider.middleware_onion.inject(web3.middleware.geth_poa_middleware, layer=0)
-    if w3_provider.isConnected():
-        return w3_provider
-    else:
-        raise Exception("Failed to connect")
 
 
 def get_chain_from_url(url):
