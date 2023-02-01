@@ -53,7 +53,7 @@ class UniswapPricer:
         self.block_to_price = {}
 
     async def get_decimals_from_token(self, token):
-        contract = await self.w3_provider.w3_provider_async.provider.eth.contract(
+        contract = await self.w3_provider.w3_provider_async.eth.contract(
             address=token, abi=ERC20_ABI
         )
         decimals = contract.functions.decimals().call()
@@ -70,10 +70,8 @@ class UniswapPricer:
                 if token_target_address != self._token_base_address:
                     self._token_target_address = token_target_address
                     print("Set address")
-                    factory = (
-                        await self.w3_provider.w3_provider_async.provider.eth.contract(
-                            address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
-                        )
+                    factory = await self.w3_provider.w3_provider_async.eth.contract(
+                        address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
                     )
                     print("factory done")
                     pair_address = factory.functions.getPair(
@@ -81,7 +79,7 @@ class UniswapPricer:
                     ).call()
                     print("pair_contract")
                     pair_contract = (
-                        await self.w3_provider.w3_provider_async.provider.eth.contract(
+                        await self.w3_provider.w3_provider_async.eth.contract(
                             address=pair_address, abi=UNISWAP_V2_PAIR_ABI
                         )
                     )
