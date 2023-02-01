@@ -282,7 +282,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             break
     print("Finished processing all tokens")
     print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
-    print(f"cols={profit_with_price_tokens.columns()}")
+    print(f"cols={profit_with_price_tokens.columns}")
     print(
         f"profit_with_price_tokens[PRICE_DEBT_KEY]=\n{profit_with_price_tokens[PRICE_DEBT_KEY]}"
     )
