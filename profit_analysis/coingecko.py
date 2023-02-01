@@ -81,3 +81,12 @@ def get_coingecko_historical_prices(start, end, token):
         pd.to_numeric(token_prices[TIMESTAMP_KEY]), unit="ms"
     )
     return token_prices[[TIMESTAMP_KEY, PRICE_KEY]]
+
+
+def get_token_address_from_lower(lower_address, chain):
+    token_cg_ids = pd.read_csv(DATA_PATH + "address_to_coingecko_ids.csv")
+    token_addresses = token_cg_ids[chain].unique().to_list()
+    for address in token_addresses:
+        if address.lower() == lower_address:
+            return address
+    return "NA"

@@ -8,7 +8,11 @@ from profit_analysis.chains import (
     OPTIMISM_CHAIN,
     POLYGON_CHAIN,
 )
-from profit_analysis.coingecko import add_cg_ids, get_address_to_coingecko_ids_mapping
+from profit_analysis.coingecko import (
+    add_cg_ids,
+    get_address_to_coingecko_ids_mapping,
+    get_token_address_from_lower,
+)
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
     AMOUNT_RECEIVED_KEY,
@@ -128,12 +132,12 @@ def get_usd_profit(profit, chain, save_to_csv=False):
     print(f"profit=\n{profit}")
     for i in range(len(tokens)):
         token = tokens[i]
-        token_address = profit.loc[
+        token_address_lower = profit.loc[
             profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
         ].values[0]
-        print(f"Processing {token} ({token_address})")
+        print(f"Processing {token} ({token_address_lower})")
         try:
-
+            token_address = get_token_address_from_lower(token_address_lower, chain)
             profit_by_received_token = pd.DataFrame(
                 profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
             )
@@ -168,9 +172,13 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 cg_id_debt = debt_cg_ids[k]
                 print(f"cg_id_debt={cg_id_debt}")
                 if cg_id_debt != "nan":
-                    token_address_debt = profit.loc[
+                    token_address_debt_lower = profit.loc[
                         profit[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
                     ].values[0]
+
+                    token_address_debt = get_token_address_from_lower(
+                        token_address_debt_lower, chain
+                    )
 
                     debt_token_prices = get_uniswap_historical_prices(
                         profit_by_received_token[BLOCK_KEY].min(),
@@ -301,9 +309,9 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             print(f"concatenated={profit_with_price_tokens}")
         except Exception as e:
             # @TODO: save into list to add later
-            print("    Failed for token=", token_address)
+            print("    Failed for token=", token_address_lower)
             print(e)
-            failures[token_address] = e
+            failures[token_address_lower] = e
             break
     print("Finished processing all tokens")
     print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")

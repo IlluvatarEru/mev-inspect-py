@@ -52,7 +52,6 @@ async def inspect_many_blocks(
                 arb_payload["transaction"] = arb.transaction_hash
                 arb_payload["account"] = arb.account_address
                 arb_payload["profit_amt"] = arb.profit_amount
-                print(arb.profit_token_address)
                 arb_payload["token"] = arb.profit_token_address
                 arbitrages_payload.append(arb_payload)
                 count += 1
