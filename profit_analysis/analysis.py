@@ -152,6 +152,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             debt_cg_ids = (
                 profit_by_received_token[CG_ID_DEBT_KEY].astype(str).unique().tolist()
             )
+            debt_cg_ids.remove("nan")
             print(f"debt_cg_ids={debt_cg_ids}")
             print(f"TOKEN_DEBT_KEY={profit_by_received_token[TOKEN_DEBT_KEY].unique()}")
             for k in range(len(debt_cg_ids)):
