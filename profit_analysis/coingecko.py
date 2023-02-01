@@ -85,7 +85,7 @@ def get_coingecko_historical_prices(start, end, token):
 
 def get_token_address_from_lower(lower_address, chain):
     token_cg_ids = pd.read_csv(DATA_PATH + "address_to_coingecko_ids.csv")
-    token_addresses = token_cg_ids[chain].unique().to_list()
+    token_addresses = token_cg_ids[chain].unique()
     for address in token_addresses:
         if address.lower() == lower_address:
             return address
