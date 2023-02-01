@@ -52,6 +52,7 @@ class UniswapPricer:
         pair_contract = self.w3_provider.w3_provider_archival_eth.eth.contract(
             address=pair_address, abi=UNISWAP_V2_PAIR_ABI
         )
+        print(f"pair_address={pair_address}")
         self._pair = pair_contract
         print("Try")
         self._token_base_decimals = 10 ** self.get_decimals_from_token(
@@ -84,6 +85,7 @@ class UniswapPricer:
         while trials < 3:
             trials += 1
             try:
+                print(f"todayprice={self._pair.functions.getReserves().call()}")
                 reserves = self._pair.functions.getReserves().call(
                     block_identifier=int(block_number)
                 )
@@ -109,7 +111,7 @@ class UniswapPricer:
 
                 return float(price)
             except Exception as e:
-                print(f"Error, retrying _get_logs_for_topics  - {e}")
+                print(f"Error, retrying get_price_at_block  - {e}")
                 sleep(0.05)
         W3.rotate_rpc_url()
         self.create(self._token_base_address, self._token_target_address)
