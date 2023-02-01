@@ -123,18 +123,24 @@ def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
     token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
     token_addresses = token_cg_ids.loc[token_cg_ids[CG_ID_KEY] == cg_id, TOKEN_KEY]
     token_address = token_addresses.values[0]
-    pricer = UniswapPricer(W3)
-    # we use USDC as a base token
-    pricer.create(USDC_TOKEN_ADDRESS_ETHEREUM, token_address)
-    blocks = [
-        block_number_min + i
-        for i in range(int(block_number_max + 1 - block_number_min))
-    ]
-    print(blocks)
-    block_to_price = {}
-    for block in blocks:
-        print(block)
-        price = pricer.get_price_at_block(block)
-        block_to_price[block] = price
-    print(f"block_to_price={block_to_price}")
-    return pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
+    if token_address != "NAN":
+        pricer = UniswapPricer(W3)
+        # we use USDC as a base token
+        pricer.create(USDC_TOKEN_ADDRESS_ETHEREUM, token_address)
+        blocks = [
+            block_number_min + i
+            for i in range(int(block_number_max + 1 - block_number_min))
+        ]
+        print(blocks)
+        block_to_price = {}
+        for block in blocks:
+            print(block)
+            price = pricer.get_price_at_block(block)
+            block_to_price[block] = price
+        print(f"block_to_price={block_to_price}")
+        return pd.DataFrame(
+            list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
+        )
+    else:
+        # @TODO: Use coingecko
+        return pd.DataFrame(columns=[BLOCK_KEY, PRICE_KEY])
