@@ -125,10 +125,13 @@ def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
     # we use USDC as a base token
     pricer.create(USDC_TOKEN_ADDRESS_ETHEREUM, token_address)
     blocks = [
-        block_number_min + i for i in range(int(block_number_max - block_number_min))
+        block_number_min + i
+        for i in range(int(block_number_max + 1 - block_number_min))
     ]
+    print(blocks)
     block_to_price = {}
     for block in blocks:
+        print(block)
         price = pricer.get_price_at_block(block)
         block_to_price[block] = price
     print(f"block_to_price={block_to_price}")
