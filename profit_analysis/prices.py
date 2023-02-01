@@ -87,7 +87,7 @@ class UniswapPricer:
                 token_target_address
             )
             print("Success")
-            token_n = self.is_target_token0_or_token1()
+            token_n = await self.is_target_token0_or_token1()
             print(f"_is_target_token0_or_token1={token_n}")
             self._is_target_token0_or_token1 = token_n
             print("Finished")
@@ -95,10 +95,10 @@ class UniswapPricer:
             W3.rotate_rpc_url()
             await self.create(token_target_address)
 
-    def is_target_token0_or_token1(self):
-        if self._pair.functions.token0().call() == self._token_target_address:
+    async def is_target_token0_or_token1(self):
+        if await self._pair.functions.token0().call() == self._token_target_address:
             return 0
-        elif self._pair.functions.token1().call() == self._token_target_address:
+        elif await self._pair.functions.token1().call() == self._token_target_address:
             return 1
         else:
             raise Exception(
