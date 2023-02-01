@@ -1,12 +1,8 @@
-import datetime
+import os
 
 import pandas as pd
 from profit_analysis.block_utils import add_block_timestamp
-from profit_analysis.coingecko import (
-    add_cg_ids,
-    get_address_to_coingecko_ids_mapping,
-    get_coingecko_historical_prices,
-)
+from profit_analysis.coingecko import add_cg_ids, get_address_to_coingecko_ids_mapping
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
     AMOUNT_RECEIVED_KEY,
@@ -28,6 +24,7 @@ from profit_analysis.metrics import (
     get_top_tokens,
     plot_profit_distribution,
 )
+from profit_analysis.prices import get_uniswap_historical_prices
 from profit_analysis.token_utils import get_decimals
 
 from mev_inspect.crud.read import read_profit_from_to
@@ -101,13 +98,14 @@ def get_usd_profit(profit, chain, save_to_csv=False):
        'profit_usd' ]
     """
     tokens = profit[CG_ID_RECEIVED_KEY].unique()
-    addresses = profit[TOKEN_RECEIVED_KEY].unique()
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     failures = {}
     for i in range(len(tokens)):
         token = tokens[i]
-        token_address = addresses[i]
+        token_address = profit.loc[
+            profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
+        ].values[0]
         print(f"Processing {token} ({token_address})")
         try:
 
@@ -118,19 +116,13 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 profit_by_received_token[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
             )
 
-            dates = pd.to_datetime(profit_by_received_token[TIMESTAMP_KEY].unique())
-            # @TODO: What is an optimal value here?
-            # looks like sometimes there is no price for hours???
-            offset_minutes = 30
-            date_min = int(
-                (dates.min() - datetime.timedelta(minutes=offset_minutes)).timestamp()
-            )
-            date_max = int(
-                (dates.max() + datetime.timedelta(minutes=offset_minutes)).timestamp()
-            )
+            block_number_min = profit_by_received_token[BLOCK_KEY].min()
+            block_number_max = profit_by_received_token[BLOCK_KEY].max()
 
             # get received token prices
-            token_prices = get_coingecko_historical_prices(date_min, date_max, token)
+            token_prices = get_uniswap_historical_prices(
+                block_number_min, block_number_max, token_address
+            )
             token_prices = token_prices.rename(columns={PRICE_KEY: PRICE_RECEIVED_KEY})
             token_prices[TOKEN_RECEIVED_KEY] = token
 
@@ -141,12 +133,17 @@ def get_usd_profit(profit, chain, save_to_csv=False):
 
             # get debt tokens prices
             debt_tokens_prices = pd.DataFrame()
-            for cg_id_debt in (
+            debt_cg_ids = (
                 profit_by_received_token[CG_ID_DEBT_KEY].astype(str).unique().tolist()
-            ):
+            )
+            for k in range(len(debt_cg_ids)):
+                cg_id_debt = debt_cg_ids[k]
                 if cg_id_debt != "nan":
-                    debt_token_prices = get_coingecko_historical_prices(
-                        date_min, date_max, cg_id_debt
+                    debt_token_address = profit_by_received_token.loc[
+                        profit_by_received_token[CG_ID_DEBT_KEY] == cg_id_debt
+                    ].values[0]
+                    debt_token_prices = get_uniswap_historical_prices(
+                        block_number_min, block_number_max, debt_token_address
                     )
                     debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
                     debt_token = mapping.loc[
