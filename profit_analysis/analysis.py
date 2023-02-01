@@ -175,6 +175,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                 columns={PRICE_KEY: PRICE_DEBT_KEY}
             )
 
+            print("DEBT DONE")
             # get debt tokens decimals
             debt_tokens_decimals = pd.DataFrame(
                 columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
@@ -182,6 +183,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             for debt_token in (
                 profit_by_received_token[TOKEN_DEBT_KEY].astype(str).unique().tolist()
             ):
+                print("debit agaiN")
                 if debt_token != "":
                     debt_token_decimals = get_decimals(debt_token, chain)
                     debt_tokens_decimals = pd.concat(
@@ -193,9 +195,15 @@ def get_usd_profit(profit, chain, save_to_csv=False):
                             ),
                         ]
                     )
+
+            print(f"profit_by_received_token=\n{profit_by_received_token}")
+            print(f"debt_tokens_decimals=\n{debt_tokens_decimals}")
+
             profit_by_received_token = profit_by_received_token.merge(
                 debt_tokens_decimals, on=TOKEN_DEBT_KEY, how="outer"
             )
+            print(f"MERGED profit_by_received_token=\n{profit_by_received_token}")
+
             profit_by_received_token.loc[
                 pd.isna(profit_by_received_token[AMOUNT_DEBT_KEY]), AMOUNT_DEBT_KEY
             ] = 0
@@ -209,38 +217,47 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             )
 
             # set up timestamps for merge
-            token_prices[TIMESTAMP_KEY] = pd.to_datetime(token_prices[TIMESTAMP_KEY])
+            # token_prices[TIMESTAMP_KEY] = pd.to_datetime(token_prices[TIMESTAMP_KEY])
 
-            # merge received token prices
-            profit_with_price_token = pd.merge_asof(
-                profit_by_received_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
-                .sort_values(TIMESTAMP_KEY)
-                .convert_dtypes(),
-                token_prices[[TIMESTAMP_KEY, PRICE_RECEIVED_KEY]]
-                .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
-                .sort_values(TIMESTAMP_KEY)
-                .convert_dtypes(),
-                direction="nearest",
-                on=TIMESTAMP_KEY,
+            profit_with_price_token = pd.merge(
+                profit_by_received_token, token_prices, on=BLOCK_KEY, how="outer"
             )
+            # merge received token prices
+            # profit_with_price_token = pd.merge_asof(
+            #     profit_by_received_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+            #     .sort_values(TIMESTAMP_KEY)
+            #     .convert_dtypes(),
+            #     token_prices[[TIMESTAMP_KEY, PRICE_RECEIVED_KEY]]
+            #     .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+            #     .sort_values(TIMESTAMP_KEY)
+            #     .convert_dtypes(),
+            #     direction="nearest",
+            #     on=TIMESTAMP_KEY,
+            # )
 
             if len(debt_tokens_prices) > 0:
                 debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
                     debt_tokens_prices[TIMESTAMP_KEY]
                 )
                 # merge debt token prices
-                profit_with_price_token = pd.merge_asof(
-                    profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
-                    .sort_values(TIMESTAMP_KEY)
-                    .convert_dtypes(),
-                    debt_tokens_prices[[TIMESTAMP_KEY, PRICE_DEBT_KEY]]
-                    .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
-                    .sort_values(TIMESTAMP_KEY)
-                    .convert_dtypes(),
-                    direction="nearest",
-                    on=TIMESTAMP_KEY,
-                    by=TOKEN_DEBT_KEY,
+                profit_with_price_token = pd.merge(
+                    profit_with_price_token,
+                    debt_tokens_prices,
+                    on=BLOCK_KEY,
+                    how="outer",
                 )
+                # profit_with_price_token = pd.merge_asof(
+                #     profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+                #     .sort_values(TIMESTAMP_KEY)
+                #     .convert_dtypes(),
+                #     debt_tokens_prices[[TIMESTAMP_KEY, PRICE_DEBT_KEY]]
+                #     .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+                #     .sort_values(TIMESTAMP_KEY)
+                #     .convert_dtypes(),
+                #     direction="nearest",
+                #     on=TIMESTAMP_KEY,
+                #     by=TOKEN_DEBT_KEY,
+                # )
                 category = "liquidation"
             else:
                 category = "arbitrage"
@@ -255,6 +272,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             print("    Failed for token=", token_address)
             print(e)
             failures[token_address] = e
+            break
     print("Finished processing all tokens")
     print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
     print(

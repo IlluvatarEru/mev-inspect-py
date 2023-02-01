@@ -4,7 +4,7 @@ from typing import Union
 
 import pandas as pd
 from profit_analysis.coingecko import get_address_to_coingecko_ids_mapping
-from profit_analysis.column_names import CG_ID_KEY, TOKEN_KEY
+from profit_analysis.column_names import BLOCK_KEY, CG_ID_KEY, PRICE_KEY, TOKEN_KEY
 
 from mev_inspect.web3_provider import W3
 
@@ -137,4 +137,4 @@ def get_uniswap_historical_prices(block_number_min, block_number_max, cg_id):
         price = pricer.get_price_at_block(block)
         block_to_price[block] = price
     print(f"block_to_price={block_to_price}")
-    return pd.DataFrame(list(block_to_price.items()), columns=["block", "price"])
+    return pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
