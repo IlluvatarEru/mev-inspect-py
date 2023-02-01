@@ -138,13 +138,12 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             )
             for k in range(len(debt_cg_ids)):
                 cg_id_debt = debt_cg_ids[k]
+                print(f"cg_id_debt={cg_id_debt}")
                 if cg_id_debt != "nan":
-                    # debt_token_address = profit_by_received_token.loc[
-                    #     profit_by_received_token[CG_ID_DEBT_KEY] == cg_id_debt
-                    # ].values[0]
                     debt_token_prices = get_uniswap_historical_prices(
                         block_number_min, block_number_max, cg_id_debt
                     )
+                    print(f"debt_token_prices=\n{debt_token_prices.head()}")
                     debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
                     debt_token = mapping.loc[
                         mapping[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
@@ -238,6 +237,10 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             print(e)
             failures[token_address] = e
     print("Finished processing all tokens")
+    print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
+    print(
+        f"profit_with_price_tokens[PRICE_DEBT_KEY]=\n{profit_with_price_tokens[PRICE_DEBT_KEY]}"
+    )
     profit_with_price_tokens[PRICE_DEBT_KEY] = profit_with_price_tokens[
         PRICE_DEBT_KEY
     ].fillna(value=0)
