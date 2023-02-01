@@ -101,6 +101,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     failures = {}
+    print(f"profit=\n{profit}")
     for i in range(len(tokens)):
         token = tokens[i]
         token_address = profit.loc[
@@ -130,6 +131,7 @@ def get_usd_profit(profit, chain, save_to_csv=False):
             decimals = get_decimals(
                 profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
             )
+            print("decimals done")
 
             # get debt tokens prices
             debt_tokens_prices = pd.DataFrame()
