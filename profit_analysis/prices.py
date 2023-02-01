@@ -36,9 +36,11 @@ class UniswapPricer:
             address=token, abi=ERC20_ABI
         )
         decimals = contract.functions.decimals().call()
+        print(f"Decimals for {token} = {decimals}")
         return decimals
 
     def create(self, token_base_address, token_target_address):
+        print(f"Creating Uniswap Pricer for {token_target_address} ")
         self._token_base_address = token_base_address
         self._token_target_address = token_target_address
         factory = self.w3_provider.w3_provider_archival_eth.eth.contract(
@@ -51,12 +53,16 @@ class UniswapPricer:
             address=pair_address, abi=UNISWAP_V2_PAIR_ABI
         )
         self._pair = pair_contract
+        print("Try")
         self._token_base_decimals = 10 ** self.get_decimals_from_token(
             token_base_address
         )
+        print("Success")
+        print("Try")
         self._token_target_decimals = 10 ** self.get_decimals_from_token(
             token_target_address
         )
+        print("Success")
         self._is_target_token0_or_token1 = self.is_target_token0_or_token1()
 
     def is_target_token0_or_token1(self):
