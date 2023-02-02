@@ -188,7 +188,9 @@ async def get_uniswap_historical_prices(
         max_concurrency = asyncio.Semaphore(max_c)
         block_number_min = int(block_number_min)
         block_number_max = int(block_number_max)
-        block_batch_size = 100
+        print(f"block_number_min={block_number_min}")
+        print(f"block_number_max={block_number_max}")
+        block_batch_size = 2
         for block_number in range(block_number_min, block_number_max, block_batch_size):
             print(f"block={block_number}")
             block_to = int(min(block_number_max, block_number_min + block_batch_size))
