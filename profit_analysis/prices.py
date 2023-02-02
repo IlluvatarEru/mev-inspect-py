@@ -126,7 +126,7 @@ class UniswapPricer:
                 if self._token_target_address == self._token_base_address:
                     price = 1.0
                 else:
-                    reserves = self._pair.functions.getReserves().call(
+                    reserves = await self._pair.functions.getReserves().call(
                         block_identifier=int(block_number)
                     )
                     if self._is_target_token0_or_token1 == 0:
