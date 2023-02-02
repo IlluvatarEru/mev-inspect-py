@@ -111,6 +111,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
        'profit_usd' ]
     """
     tokens = profit[CG_ID_RECEIVED_KEY].unique()
+    tokens.remove("nan")
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     profit[TIMESTAMP_KEY] = pd.to_datetime(
