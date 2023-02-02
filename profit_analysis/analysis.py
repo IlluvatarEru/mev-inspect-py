@@ -134,10 +134,11 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
     print(f"profit=\n{profit}")
     for i in range(len(tokens)):
         token = tokens[i]
+        print(f"Processing {token} ")
         token_address_lower = profit.loc[
             profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
         ].values[0]
-        print(f"Processing {token} ({token_address_lower})")
+        print(f"for which address=({token_address_lower})")
         try:
             token_address = get_token_address_from_lower(token_address_lower, chain)
             profit_by_received_token = pd.DataFrame(
