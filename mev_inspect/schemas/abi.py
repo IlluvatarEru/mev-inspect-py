@@ -43,7 +43,7 @@ class ABIFunctionDescription(BaseModel):
 
     def get_selector(self) -> str:
         signature = self.get_signature()
-        return Web3.sha3(text=signature)[0:4].hex()
+        return Web3.keccak(text=signature)[0:4].hex()
 
     def get_signature(self) -> str:
         joined_input_types = ",".join(
