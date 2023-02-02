@@ -198,7 +198,7 @@ async def get_uniswap_historical_prices(
             start_block_number = target_blocks[start_block_number_index]
             print(f"start_block_number={start_block_number}")
             end_block_number_index = min(
-                len(target_blocks), start_block_number_index + block_batch_size
+                len(target_blocks) - 1, start_block_number_index + block_batch_size
             )
             end_block_number = target_blocks[end_block_number_index]
             print(f"block_to={end_block_number}")
