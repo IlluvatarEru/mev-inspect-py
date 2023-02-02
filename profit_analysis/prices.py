@@ -150,8 +150,8 @@ async def get_uniswap_historical_prices(
     target_blocks,
     token_address,
     chain=POLYGON_CHAIN,
-    max_concurrency=1,
-    block_batch_size=100,
+    max_concurrency=10,
+    block_batch_size=1024,
 ):
     target_blocks = [int(b) for b in target_blocks]
     pricer = UniswapPricer(W3, chain)
@@ -161,17 +161,11 @@ async def get_uniswap_historical_prices(
     max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
 
     for start_block_number_index in range(0, len(target_blocks), block_batch_size):
-        start_block_number = target_blocks[start_block_number_index]
-        print(f"start_block_number={start_block_number}")
         end_block_number_index = min(
             len(target_blocks) - 1, start_block_number_index + block_batch_size
         )
-        end_block_number = target_blocks[end_block_number_index]
-        print(f"block_to={end_block_number}")
         for k in range(end_block_number_index - start_block_number_index):
-            print(f"k={k}")
             block = target_blocks[start_block_number_index + k]
-            print(f"block={block}")
             tasks.append(
                 asyncio.ensure_future(
                     safe_get_price(pricer, int(block), max_concurrency_semaphore)
