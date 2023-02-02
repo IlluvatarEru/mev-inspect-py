@@ -186,8 +186,11 @@ async def get_uniswap_historical_prices(
         tasks = []
         max_c = 1
         max_concurrency = asyncio.Semaphore(max_c)
+        block_number_min = int(block_number_min)
+        block_number_max = int(block_number_max)
+
         for block in range(block_number_min, block_number_max, max_c):
-            for block_j in range(block, int(block + max_c)):
+            for block_j in range(int(block), int(block + max_c)):
                 tasks.append(
                     asyncio.ensure_future(
                         safe_get_price(pricer, int(block_j), max_concurrency)
