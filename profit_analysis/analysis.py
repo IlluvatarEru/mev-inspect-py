@@ -110,8 +110,8 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
        'amount_debt', 'token_debt', 'price_debt',
        'profit_usd' ]
     """
+    print(f"profit=\n{profit.tail()}")
     tokens = list(profit[CG_ID_RECEIVED_KEY].unique())
-    tokens.remove("nan")
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     profit[TIMESTAMP_KEY] = pd.to_datetime(
@@ -136,182 +136,197 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
     for i in range(len(tokens)):
         token = tokens[i]
         print(f"Processing {token} ")
-        token_address_lower = profit.loc[
-            profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
-        ].values[0]
-        print(f"for which address=({token_address_lower})")
-        try:
-            token_address = get_token_address_from_lower(token_address_lower, chain)
-            profit_by_received_token = pd.DataFrame(
-                profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
-            )
-
-            target_blocks = profit_by_received_token[BLOCK_KEY].unique()
-            token_prices = await get_uniswap_historical_prices(
-                target_blocks,
-                token_address,
-                chain,
-            )
-            token_prices = token_prices.rename(columns={PRICE_KEY: PRICE_RECEIVED_KEY})
-            token_prices[TOKEN_RECEIVED_KEY] = token
-
-            # get received token decimals
-            decimals = get_decimals(
-                profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
-            )
-            print("decimals done")
-
-            # get debt tokens prices
-            debt_tokens_prices = pd.DataFrame()
-            debt_cg_ids = (
-                profit_by_received_token[CG_ID_DEBT_KEY].astype(str).unique().tolist()
-            )
-            debt_cg_ids.remove("nan")
-            print(f"debt_cg_ids={debt_cg_ids}")
-            print(f"TOKEN_DEBT_KEY={profit_by_received_token[TOKEN_DEBT_KEY].unique()}")
-            for k in range(len(debt_cg_ids)):
-                cg_id_debt = debt_cg_ids[k]
-                print(f"cg_id_debt={cg_id_debt}")
-                if cg_id_debt != "nan":
-                    token_address_debt_lower = profit.loc[
-                        profit[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
-                    ].values[0]
-
-                    token_address_debt = get_token_address_from_lower(
-                        token_address_debt_lower, chain
-                    )
-
-                    target_blocks = profit_by_received_token[BLOCK_KEY].unique()
-                    debt_token_prices = await get_uniswap_historical_prices(
-                        target_blocks,
-                        token_address_debt,
-                        chain,
-                    )
-
-                    print(f"debt_token_prices=\n{debt_token_prices.head()}")
-                    debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
-                    debt_token = mapping.loc[
-                        mapping[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
-                    ].values[0]
-                    debt_token_prices[TOKEN_DEBT_KEY] = debt_token
-                    debt_tokens_prices = pd.concat(
-                        [debt_tokens_prices, debt_token_prices]
-                    )
-            debt_tokens_prices = debt_tokens_prices.rename(
-                columns={PRICE_KEY: PRICE_DEBT_KEY}
-            )
-
-            print("DEBT DONE")
-            # get debt tokens decimals
-            debt_tokens_decimals = pd.DataFrame(
-                columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
-            )
-            for debt_token in (
-                profit_by_received_token[TOKEN_DEBT_KEY].astype(str).unique().tolist()
-            ):
-                print("debit agaiN")
-                if debt_token != "":
-                    debt_token_decimals = get_decimals(debt_token, chain)
-                    debt_tokens_decimals = pd.concat(
-                        [
-                            debt_tokens_decimals,
-                            pd.DataFrame(
-                                [[debt_token, debt_token_decimals]],
-                                columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY],
-                            ),
-                        ]
-                    )
-
-            print(f"profit_by_received_token=\n{profit_by_received_token}")
-            print(f"debt_tokens_decimals=\n{debt_tokens_decimals}")
-
-            profit_by_received_token = profit_by_received_token.merge(
-                debt_tokens_decimals, on=TOKEN_DEBT_KEY, how="outer"
-            )
-            print(f"MERGED profit_by_received_token=\n{profit_by_received_token}")
-
-            profit_by_received_token.loc[
-                pd.isna(profit_by_received_token[AMOUNT_DEBT_KEY]), AMOUNT_DEBT_KEY
-            ] = 0
-
-            # apply decimals
-            profit_by_received_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
-                profit_by_received_token[AMOUNT_RECEIVED_KEY]
-            ).div(10**decimals)
-            profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
-                profit_by_received_token[AMOUNT_DEBT_KEY]
-            )
-
-            print(f"post decimal profit_by_received_token=\n{profit_by_received_token}")
-            # set up timestamps for merge
-            # token_prices[TIMESTAMP_KEY] = pd.to_datetime(token_prices[TIMESTAMP_KEY])
-
-            profit_with_price_token = pd.merge(
-                profit_by_received_token,
-                token_prices,
-                on=BLOCK_KEY,
-                how="left",
-                suffixes=("", "_y"),
-            )
-
-            print(
-                f"merged with price profit_with_price_token=\n{profit_with_price_token}"
-            )
-            # merge received token prices
-            # profit_with_price_token = pd.merge_asof(
-            #     profit_by_received_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
-            #     .sort_values(TIMESTAMP_KEY)
-            #     .convert_dtypes(),
-            #     token_prices[[TIMESTAMP_KEY, PRICE_RECEIVED_KEY]]
-            #     .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
-            #     .sort_values(TIMESTAMP_KEY)
-            #     .convert_dtypes(),
-            #     direction="nearest",
-            #     on=TIMESTAMP_KEY,
-            # )
-
-            if len(debt_tokens_prices) > 0:
-                print("len>0????")
-                debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
-                    debt_tokens_prices[TIMESTAMP_KEY]
+        if tokens != "nan":
+            token_address_lower = profit.loc[
+                profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
+            ].values[0]
+            print(f"for which address=({token_address_lower})")
+            try:
+                token_address = get_token_address_from_lower(token_address_lower, chain)
+                profit_by_received_token = pd.DataFrame(
+                    profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
                 )
-                # merge debt token prices
+
+                target_blocks = profit_by_received_token[BLOCK_KEY].unique()
+                token_prices = await get_uniswap_historical_prices(
+                    target_blocks,
+                    token_address,
+                    chain,
+                )
+                token_prices = token_prices.rename(
+                    columns={PRICE_KEY: PRICE_RECEIVED_KEY}
+                )
+                token_prices[TOKEN_RECEIVED_KEY] = token
+
+                # get received token decimals
+                decimals = get_decimals(
+                    profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
+                )
+                print("decimals done")
+
+                # get debt tokens prices
+                debt_tokens_prices = pd.DataFrame()
+                debt_cg_ids = (
+                    profit_by_received_token[CG_ID_DEBT_KEY]
+                    .astype(str)
+                    .unique()
+                    .tolist()
+                )
+                debt_cg_ids.remove("nan")
+                print(f"debt_cg_ids={debt_cg_ids}")
+                print(
+                    f"TOKEN_DEBT_KEY={profit_by_received_token[TOKEN_DEBT_KEY].unique()}"
+                )
+                for k in range(len(debt_cg_ids)):
+                    cg_id_debt = debt_cg_ids[k]
+                    print(f"cg_id_debt={cg_id_debt}")
+                    if cg_id_debt != "nan":
+                        token_address_debt_lower = profit.loc[
+                            profit[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
+                        ].values[0]
+
+                        token_address_debt = get_token_address_from_lower(
+                            token_address_debt_lower, chain
+                        )
+
+                        target_blocks = profit_by_received_token[BLOCK_KEY].unique()
+                        debt_token_prices = await get_uniswap_historical_prices(
+                            target_blocks,
+                            token_address_debt,
+                            chain,
+                        )
+
+                        print(f"debt_token_prices=\n{debt_token_prices.head()}")
+                        debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
+                        debt_token = mapping.loc[
+                            mapping[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
+                        ].values[0]
+                        debt_token_prices[TOKEN_DEBT_KEY] = debt_token
+                        debt_tokens_prices = pd.concat(
+                            [debt_tokens_prices, debt_token_prices]
+                        )
+                debt_tokens_prices = debt_tokens_prices.rename(
+                    columns={PRICE_KEY: PRICE_DEBT_KEY}
+                )
+
+                print("DEBT DONE")
+                # get debt tokens decimals
+                debt_tokens_decimals = pd.DataFrame(
+                    columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
+                )
+                for debt_token in (
+                    profit_by_received_token[TOKEN_DEBT_KEY]
+                    .astype(str)
+                    .unique()
+                    .tolist()
+                ):
+                    print("debit agaiN")
+                    if debt_token != "":
+                        debt_token_decimals = get_decimals(debt_token, chain)
+                        debt_tokens_decimals = pd.concat(
+                            [
+                                debt_tokens_decimals,
+                                pd.DataFrame(
+                                    [[debt_token, debt_token_decimals]],
+                                    columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY],
+                                ),
+                            ]
+                        )
+
+                print(f"profit_by_received_token=\n{profit_by_received_token}")
+                print(f"debt_tokens_decimals=\n{debt_tokens_decimals}")
+
+                profit_by_received_token = profit_by_received_token.merge(
+                    debt_tokens_decimals, on=TOKEN_DEBT_KEY, how="outer"
+                )
+                print(f"MERGED profit_by_received_token=\n{profit_by_received_token}")
+
+                profit_by_received_token.loc[
+                    pd.isna(profit_by_received_token[AMOUNT_DEBT_KEY]), AMOUNT_DEBT_KEY
+                ] = 0
+
+                # apply decimals
+                profit_by_received_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
+                    profit_by_received_token[AMOUNT_RECEIVED_KEY]
+                ).div(10**decimals)
+                profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
+                    profit_by_received_token[AMOUNT_DEBT_KEY]
+                )
+
+                print(
+                    f"post decimal profit_by_received_token=\n{profit_by_received_token}"
+                )
+                # set up timestamps for merge
+                # token_prices[TIMESTAMP_KEY] = pd.to_datetime(token_prices[TIMESTAMP_KEY])
+
                 profit_with_price_token = pd.merge(
-                    profit_with_price_token,
-                    debt_tokens_prices,
+                    profit_by_received_token,
+                    token_prices,
                     on=BLOCK_KEY,
                     how="left",
                     suffixes=("", "_y"),
                 )
+
+                print(
+                    f"merged with price profit_with_price_token=\n{profit_with_price_token}"
+                )
+                # merge received token prices
                 # profit_with_price_token = pd.merge_asof(
-                #     profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+                #     profit_by_received_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
                 #     .sort_values(TIMESTAMP_KEY)
                 #     .convert_dtypes(),
-                #     debt_tokens_prices[[TIMESTAMP_KEY, PRICE_DEBT_KEY]]
+                #     token_prices[[TIMESTAMP_KEY, PRICE_RECEIVED_KEY]]
                 #     .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
                 #     .sort_values(TIMESTAMP_KEY)
                 #     .convert_dtypes(),
                 #     direction="nearest",
                 #     on=TIMESTAMP_KEY,
-                #     by=TOKEN_DEBT_KEY,
                 # )
-                category = "liquidation"
-            else:
-                category = "arbitrage"
-                profit_with_price_token[PRICE_DEBT_KEY] = 0
 
-            profit_with_price_token["category"] = category
-            print(f"profit_with_price_token with category={profit_with_price_token}")
-            profit_with_price_tokens = pd.concat(
-                [profit_with_price_tokens, profit_with_price_token]
-            )
-            print(f"concatenated={profit_with_price_tokens}")
-        except Exception as e:
-            # @TODO: save into list to add later
-            print("    Failed for token=", token_address_lower)
-            print(e)
-            failures[token_address_lower] = e
-            break
+                if len(debt_tokens_prices) > 0:
+                    print("len>0????")
+                    debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
+                        debt_tokens_prices[TIMESTAMP_KEY]
+                    )
+                    # merge debt token prices
+                    profit_with_price_token = pd.merge(
+                        profit_with_price_token,
+                        debt_tokens_prices,
+                        on=BLOCK_KEY,
+                        how="left",
+                        suffixes=("", "_y"),
+                    )
+                    # profit_with_price_token = pd.merge_asof(
+                    #     profit_with_price_token.astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+                    #     .sort_values(TIMESTAMP_KEY)
+                    #     .convert_dtypes(),
+                    #     debt_tokens_prices[[TIMESTAMP_KEY, PRICE_DEBT_KEY]]
+                    #     .astype({TIMESTAMP_KEY: PD_DATETIME_FORMAT})
+                    #     .sort_values(TIMESTAMP_KEY)
+                    #     .convert_dtypes(),
+                    #     direction="nearest",
+                    #     on=TIMESTAMP_KEY,
+                    #     by=TOKEN_DEBT_KEY,
+                    # )
+                    category = "liquidation"
+                else:
+                    category = "arbitrage"
+                    profit_with_price_token[PRICE_DEBT_KEY] = 0
+
+                profit_with_price_token["category"] = category
+                print(
+                    f"profit_with_price_token with category={profit_with_price_token}"
+                )
+                profit_with_price_tokens = pd.concat(
+                    [profit_with_price_tokens, profit_with_price_token]
+                )
+                print(f"concatenated={profit_with_price_tokens}")
+            except Exception as e:
+                # @TODO: save into list to add later
+                print("    Failed for token=", token_address_lower)
+                print(e)
+                failures[token_address_lower] = e
+                break
     print("Finished processing all tokens")
     print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
     print(f"cols={profit_with_price_tokens.columns}")
