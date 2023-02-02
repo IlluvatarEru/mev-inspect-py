@@ -94,7 +94,7 @@ async def classify_logs(logs, pool_reserves):
             if pool_address in pool_reserves:
                 token0, token1 = pool_reserves[pool_address]
             else:
-                addr = Web3.toChecksumAddress(pool_address)
+                addr = Web3.to_checksum_address(pool_address)
                 token0, token1 = await get_pool_reserves(addr, pool_address)
                 pool_reserves[pool_address] = (token0, token1)
 
@@ -146,8 +146,8 @@ async def get_pool_reserves(addr, pool_address):
                 W3.w3_provider_async.eth.call({"to": addr, "data": UNI_TOKEN_0}),
                 W3.w3_provider_async.eth.call({"to": addr, "data": UNI_TOKEN_1}),
             )
-            token0 = W3.w3_provider_async.toHex(token0)
-            token1 = W3.w3_provider_async.toHex(token1)
+            token0 = W3.w3_provider_async.to_hex(token0)
+            token1 = W3.w3_provider_async.to_hex(token1)
             return token0, token1
         except Exception as e:
             print(f"Error ({trials}/{n_trials}), retrying  get_pool_reserves  -  {e}")

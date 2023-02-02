@@ -70,13 +70,14 @@ class UniswapPricer:
                 if token_target_address != self._token_base_address:
                     self._token_target_address = token_target_address
                     print("Set address")
-                    factory = await self.w3_provider.w3_provider_async.eth.contract(
+                    factory = self.w3_provider.w3_provider_async.eth.contract(
                         address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
                     )
                     print("factory done")
-                    pair_address = factory.functions.getPair(
+                    pair_address = await factory.functions.getPair(
                         self._token_base_address, token_target_address
                     ).call()
+                    print(f"pair_address={pair_address}")
                     print("pair_contract")
                     pair_contract = (
                         await self.w3_provider.w3_provider_async.eth.contract(
