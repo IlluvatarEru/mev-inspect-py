@@ -110,7 +110,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
        'amount_debt', 'token_debt', 'price_debt',
        'profit_usd' ]
     """
-    tokens = profit[CG_ID_RECEIVED_KEY].unique()
+    tokens = list(profit[CG_ID_RECEIVED_KEY].unique())
     tokens.remove("nan")
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
@@ -145,10 +145,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
             profit_by_received_token = pd.DataFrame(
                 profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
             )
-            # get received token prices
-            # token_prices = get_uniswap_historical_prices(
-            #     block_number_min, block_number_max, token, chain
-            # )
+
             target_blocks = profit_by_received_token[BLOCK_KEY].unique()
             token_prices = await get_uniswap_historical_prices(
                 target_blocks,
@@ -190,9 +187,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                         token_address_debt,
                         chain,
                     )
-                    # debt_token_prices = get_uniswap_historical_prices(
-                    #     block_number_min, block_number_max, cg_id_debt
-                    # )
+
                     print(f"debt_token_prices=\n{debt_token_prices.head()}")
                     debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
                     debt_token = mapping.loc[
