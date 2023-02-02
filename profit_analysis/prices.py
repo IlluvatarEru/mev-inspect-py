@@ -99,7 +99,7 @@ class UniswapPricer:
                     print(f"_is_target_token0_or_token1={token_n}")
                     self._is_target_token0_or_token1 = token_n
                     print("Finished")
-                    return self
+                return self
             except Exception as e:
                 print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
                 sleep(0.05)
