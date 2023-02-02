@@ -171,8 +171,8 @@ async def get_uniswap_historical_prices(
     target_blocks, token_address, chain=POLYGON_CHAIN
 ):
     target_blocks = [int(b) for b in target_blocks]
-    block_number_min = int(target_blocks.min())
-    block_number_max = int(target_blocks.max())
+    block_number_min = int(min(target_blocks))
+    block_number_max = int(max(target_blocks))
     print(f"block_number_min={block_number_min}")
     print(f"block_number_max={block_number_max}")
     # TODO: get only the blocks, not every nthing
