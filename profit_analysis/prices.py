@@ -53,10 +53,10 @@ class UniswapPricer:
         self.block_to_price = {}
 
     async def get_decimals_from_token(self, token):
-        contract = await self.w3_provider.w3_provider_async.eth.contract(
+        contract = self.w3_provider.w3_provider_async.eth.contract(
             address=token, abi=ERC20_ABI
         )
-        decimals = contract.functions.decimals().call()
+        decimals = await contract.functions.decimals().call()
         print(f"Decimals for {token} = {decimals}")
         return decimals
 
@@ -79,10 +79,8 @@ class UniswapPricer:
                     ).call()
                     print(f"pair_address={pair_address}")
                     print("pair_contract")
-                    pair_contract = (
-                        await self.w3_provider.w3_provider_async.eth.contract(
-                            address=pair_address, abi=UNISWAP_V2_PAIR_ABI
-                        )
+                    pair_contract = self.w3_provider.w3_provider_async.eth.contract(
+                        address=pair_address, abi=UNISWAP_V2_PAIR_ABI
                     )
                     print(f"pair_address={pair_address}")
                     self._pair = pair_contract
