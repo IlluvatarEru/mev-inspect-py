@@ -15,13 +15,18 @@ from profit_analysis.constants import DATA_PATH
 TRAILING_ZEROS = "000000000000000000000000"
 
 
-def get_address_to_coingecko_ids_mapping(chain):
+def get_address_to_coingecko_ids_mapping(chain, add_received_and_debt_columns=True):
+    """
+    return: pd.DataFrame, with columns [CG_ID_KEY, TOKEN_KEY]
+    """
     token_cg_ids = pd.read_csv(DATA_PATH + "address_to_coingecko_ids.csv")
-    token_cg_ids = token_cg_ids.loc[token_cg_ids["chain"] == chain]
-    token_cg_ids[TOKEN_DEBT_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
-    token_cg_ids[CG_ID_RECEIVED_KEY] = token_cg_ids[CG_ID_KEY]
-    token_cg_ids[CG_ID_DEBT_KEY] = token_cg_ids[CG_ID_KEY]
-    token_cg_ids[TOKEN_RECEIVED_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
+    token_cg_ids = token_cg_ids[[CG_ID_KEY, chain.lower()]]
+    token_cg_ids.columns = [CG_ID_KEY, TOKEN_KEY]
+    if add_received_and_debt_columns:
+        token_cg_ids[TOKEN_DEBT_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
+        token_cg_ids[CG_ID_RECEIVED_KEY] = token_cg_ids[CG_ID_KEY]
+        token_cg_ids[CG_ID_DEBT_KEY] = token_cg_ids[CG_ID_KEY]
+        token_cg_ids[TOKEN_RECEIVED_KEY] = token_cg_ids[TOKEN_KEY].astype(str)
     return token_cg_ids
 
 
@@ -76,3 +81,12 @@ def get_coingecko_historical_prices(start, end, token):
         pd.to_numeric(token_prices[TIMESTAMP_KEY]), unit="ms"
     )
     return token_prices[[TIMESTAMP_KEY, PRICE_KEY]]
+
+
+def get_token_address_from_lower(lower_address, chain):
+    token_cg_ids = pd.read_csv(DATA_PATH + "address_to_coingecko_ids.csv")
+    token_addresses = token_cg_ids[chain].unique()
+    for address in token_addresses:
+        if address.lower() == lower_address:
+            return address
+    return "NA"

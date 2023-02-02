@@ -25,7 +25,8 @@ UNI_TOKEN_1 = "0xd21220a7"
 
 async def _get_logs_for_topics(after_block, before_block, topics):
     trials = 0
-    while trials < 3:
+    n_trials = 3
+    while trials < n_trials:
         trials += 1
         try:
             logs = await W3.w3_provider_async.provider.make_request(
@@ -40,7 +41,7 @@ async def _get_logs_for_topics(after_block, before_block, topics):
             )
             return logs["result"]
         except Exception as e:
-            print(f"Error, retrying _get_logs_for_topics  - {e}")
+            print(f"Error ({trials}/{n_trials}), retrying _get_logs_for_topics  - {e}")
             sleep(0.05)
     W3.rotate_rpc_url()
     return await _get_logs_for_topics(after_block, before_block, topics)
@@ -93,7 +94,7 @@ async def classify_logs(logs, pool_reserves):
             if pool_address in pool_reserves:
                 token0, token1 = pool_reserves[pool_address]
             else:
-                addr = Web3.toChecksumAddress(pool_address)
+                addr = Web3.to_checksum_address(pool_address)
                 token0, token1 = await get_pool_reserves(addr, pool_address)
                 pool_reserves[pool_address] = (token0, token1)
 
@@ -137,18 +138,19 @@ async def classify_logs(logs, pool_reserves):
 
 async def get_pool_reserves(addr, pool_address):
     trials = 0
-    while trials < 3:
+    n_trials = 3
+    while trials < n_trials:
         trials += 1
         try:
             token0, token1 = await asyncio.gather(
                 W3.w3_provider_async.eth.call({"to": addr, "data": UNI_TOKEN_0}),
                 W3.w3_provider_async.eth.call({"to": addr, "data": UNI_TOKEN_1}),
             )
-            token0 = W3.w3_provider_async.toHex(token0)
-            token1 = W3.w3_provider_async.toHex(token1)
+            token0 = W3.w3_provider_async.to_hex(token0)
+            token1 = W3.w3_provider_async.to_hex(token1)
             return token0, token1
         except Exception as e:
-            print(f"Error, retrying  get_pool_reserves  -  {e}")
+            print(f"Error ({trials}/{n_trials}), retrying  get_pool_reserves  -  {e}")
             sleep(0.05)
     W3.rotate_rpc_url()
     return await get_pool_reserves(addr, pool_address)
