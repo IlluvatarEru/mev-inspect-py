@@ -168,8 +168,13 @@ async def safe_get_price(pricer, block, max_concurrency):
 
 
 async def get_uniswap_historical_prices(
-    block_number_min, block_number_max, token_address, chain=POLYGON_CHAIN
+    target_blocks, token_address, chain=POLYGON_CHAIN
 ):
+    target_blocks = [int(b) for b in target_blocks]
+    block_number_min = int(target_blocks.min())
+    block_number_max = int(target_blocks.max())
+    print(f"block_number_min={block_number_min}")
+    print(f"block_number_max={block_number_max}")
     # TODO: get only the blocks, not every nthing
     # print(f"pricer for token={token} from={block_number_min}, to ={block_number_max}")
     # token_cg_ids = get_address_to_coingecko_ids_mapping("ethereum", False)
@@ -187,20 +192,23 @@ async def get_uniswap_historical_prices(
         tasks = []
         max_c = 1
         max_concurrency = asyncio.Semaphore(max_c)
-        block_number_min = int(block_number_min)
-        block_number_max = int(block_number_max)
-        print(f"block_number_min={block_number_min}")
-        print(f"block_number_max={block_number_max}")
+
         block_batch_size = 2
-        for block_number in range(block_number_min, block_number_max, block_batch_size):
-            print(f"block={block_number}")
-            block_to = int(min(block_number_max, block_number_min + block_batch_size))
-            print(f"block_to={block_to}")
-            for block_j in range(int(block_number), block_to):
-                print(f"block_j={block_j}")
+        for start_block_number_index in range(0, len(target_blocks), block_batch_size):
+            start_block_number = target_blocks[start_block_number_index]
+            print(f"start_block_number={start_block_number}")
+            end_block_number_index = min(
+                len(target_blocks), start_block_number_index + block_batch_size
+            )
+            end_block_number = target_blocks[end_block_number_index]
+            print(f"block_to={end_block_number}")
+            for k in range(start_block_number, end_block_number):
+                print(f"k={k}")
+                block = target_blocks[start_block_number + k]
+                print(f"block={block}")
                 tasks.append(
                     asyncio.ensure_future(
-                        safe_get_price(pricer, int(block_j), max_concurrency)
+                        safe_get_price(pricer, int(block), max_concurrency)
                     )
                 )
         await asyncio.gather(*tasks)
