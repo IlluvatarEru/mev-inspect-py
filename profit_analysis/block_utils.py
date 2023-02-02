@@ -20,7 +20,7 @@ def add_block_timestamp(profit_by_block):
 def get_block_timestamp(block):
     trials = 0
     n_trials = 3
-    while trials < 3:
+    while trials < n_trials:
         trials += 1
         try:
             block_info = W3.w3_provider.eth.get_block(int(block))

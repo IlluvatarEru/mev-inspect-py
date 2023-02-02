@@ -62,7 +62,7 @@ class UniswapPricer:
     async def create(self, token_target_address):
         trials = 0
         n_trials = 3
-        while trials < 3:
+        while trials < n_trials:
             trials += 1
             try:
                 print(f"Creating Uniswap Pricer for {token_target_address} ")

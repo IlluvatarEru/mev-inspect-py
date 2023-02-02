@@ -26,7 +26,7 @@ UNI_TOKEN_1 = "0xd21220a7"
 async def _get_logs_for_topics(after_block, before_block, topics):
     trials = 0
     n_trials = 3
-    while trials < 3:
+    while trials < n_trials:
         trials += 1
         try:
             logs = await W3.w3_provider_async.provider.make_request(
@@ -139,7 +139,7 @@ async def classify_logs(logs, pool_reserves):
 async def get_pool_reserves(addr, pool_address):
     trials = 0
     n_trials = 3
-    while trials < 3:
+    while trials < n_trials:
         trials += 1
         try:
             token0, token1 = await asyncio.gather(
