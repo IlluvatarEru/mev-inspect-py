@@ -172,7 +172,7 @@ async def get_uniswap_historical_prices(
 ):
     target_blocks = [int(b) for b in target_blocks]
     block_number_min = int(min(target_blocks))
-    block_number_max = int(max(target_blocks)) + 1
+    block_number_max = int(max(target_blocks))
     print(f"block_number_min={block_number_min}")
     print(f"block_number_max={block_number_max}")
     # TODO: get only the blocks, not every nthing
@@ -204,7 +204,7 @@ async def get_uniswap_historical_prices(
             print(f"block_to={end_block_number}")
             for k in range(start_block_number, end_block_number):
                 print(f"k={k}")
-                block = target_blocks[start_block_number + k]
+                block = target_blocks[start_block_number_index + k]
                 print(f"block={block}")
                 tasks.append(
                     asyncio.ensure_future(
