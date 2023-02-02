@@ -151,7 +151,7 @@ async def get_uniswap_historical_prices(
     token_address,
     chain=POLYGON_CHAIN,
     max_concurrency=1,
-    block_batch_size=2,
+    block_batch_size=100,
 ):
     target_blocks = [int(b) for b in target_blocks]
     pricer = UniswapPricer(W3, chain)
