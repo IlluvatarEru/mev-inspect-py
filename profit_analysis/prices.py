@@ -67,8 +67,8 @@ class UniswapPricer:
             trials += 1
             try:
                 print(f"Creating Uniswap Pricer for {token_target_address} ")
+                self._token_target_address = token_target_address
                 if token_target_address != self._token_base_address:
-                    self._token_target_address = token_target_address
                     print("Set address")
                     factory = self.w3_provider.w3_provider_async.eth.contract(
                         address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
