@@ -136,7 +136,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
     for i in range(len(tokens)):
         token = tokens[i]
         print(f"Processing {token} ")
-        if tokens != "nan":
+        if (token != "nan") and (not pd.isna(token)):
             token_address_lower = profit.loc[
                 profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
             ].values[0]
