@@ -15,7 +15,7 @@ def hist_data(data, bins=None):
 
 
 def plot_profit_distribution(profit: pd.DataFrame, show_plot=False):
-    profit = profit["profit_usd"]
+    profit = profit[np.isfinite(profit["profit_usd"])]["profit_usd"]
     hist, bin_edges = hist_data(profit)
     plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), align="edge")
     plt.xlabel("Profit (USD)")
