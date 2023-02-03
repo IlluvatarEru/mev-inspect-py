@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from profit_analysis.coingecko import add_cg_ids
 from profit_analysis.column_names import CG_ID_RECEIVED_KEY
+from profit_analysis.constants import DATA_PATH
 
 PROFIT_DISTRIBUTION_FILE_NAME = "profit_distribution.png"
 
@@ -20,7 +21,7 @@ def plot_profit_distribution(profit: pd.DataFrame, show_plot=False):
     plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), align="edge")
     plt.xlabel("Profit (USD)")
     plt.ylabel("Frequency")
-    plt.savefig(PROFIT_DISTRIBUTION_FILE_NAME)
+    plt.savefig(DATA_PATH + PROFIT_DISTRIBUTION_FILE_NAME)
     if show_plot:
         plt.show()
     return hist, bin_edges
