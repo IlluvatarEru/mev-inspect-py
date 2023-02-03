@@ -47,8 +47,6 @@ from mev_inspect.web3_provider import W3
 
 def analyze_profit(profit, save_to_csv=False):
     print(f"Launching profit analysis, saving to CSV? {save_to_csv}")
-    print(type(save_to_csv))
-    save_to_csv = save_to_csv == "True"
     rpc_url = os.environ.get("RPC_URL")
     chain = get_chain_from_url(rpc_url)
     print("    -------------------------------------------------------------------")
