@@ -15,15 +15,13 @@ def hist_data(data, bins=None):
     return hist, bin_edges
 
 
-def plot_profit_distribution(profit: pd.DataFrame, show_plot=False):
+def plot_profit_distribution(profit: pd.DataFrame):
     profit = profit[np.isfinite(profit["profit_usd"])]["profit_usd"]
     hist, bin_edges = hist_data(profit)
     plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), align="edge")
     plt.xlabel("Profit (USD)")
     plt.ylabel("Frequency")
     plt.savefig(DATA_PATH + PROFIT_DISTRIBUTION_FILE_NAME)
-    if show_plot:
-        plt.show()
     return hist, bin_edges
 
 
@@ -35,11 +33,15 @@ def compute_profit_kurtosis(profit: pd.DataFrame):
     return profit["profit_usd"].kurtosis()
 
 
-def get_top_tokens(profit, chain, top=10):
+def get_top_tokens(profit, chain, top=10, save_to_csv=False):
     profit = add_cg_ids(profit, chain)
     top_tokens = profit[CG_ID_RECEIVED_KEY].value_counts().sort_values(ascending=False)
     top_tokens = top_tokens.reset_index()
     top_tokens.columns = ["Token", "Count"]
     n_tx = top_tokens["Count"].sum()
     top_tokens["Frequency"] = top_tokens["Count"] / n_tx
-    return top_tokens.head(top)
+    top_tokens = top_tokens.head(top)
+    if save_to_csv:
+        file_name = DATA_PATH + "top_tokens.csv"
+        top_tokens.to_csv(file_name, index=False)
+    return top_tokens

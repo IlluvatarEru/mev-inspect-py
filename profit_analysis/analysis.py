@@ -309,7 +309,6 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
     profit_by_block.rename(columns={"": col}, inplace=True)
     if save_to_csv:
         file_name = DATA_PATH + "profit_by_" + col + ".csv"
-        print(file_name)
         profit_by_block.to_csv(file_name, index=False)
     return profit_by_block
 
