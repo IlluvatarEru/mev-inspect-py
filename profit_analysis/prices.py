@@ -153,24 +153,28 @@ async def get_uniswap_historical_prices(
     max_concurrency=10,
     block_batch_size=1024,
 ):
-    target_blocks = [int(b) for b in target_blocks]
+    print(f"Requesting prices for {token_address} for blocks={target_blocks}")
     pricer = UniswapPricer(W3, chain)
     # we use USDC as a base token
     await pricer.create(token_address)
-    tasks = []
-    max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
+    if len(target_blocks) > 1:
+        target_blocks = [int(b) for b in target_blocks]
+        tasks = []
+        max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
 
-    for start_block_number_index in range(0, len(target_blocks), block_batch_size):
-        end_block_number_index = min(
-            len(target_blocks) - 1, start_block_number_index + block_batch_size
-        )
-        for k in range(end_block_number_index - start_block_number_index):
-            block = target_blocks[start_block_number_index + k]
-            tasks.append(
-                asyncio.ensure_future(
-                    safe_get_price(pricer, int(block), max_concurrency_semaphore)
-                )
+        for start_block_number_index in range(0, len(target_blocks), block_batch_size):
+            end_block_number_index = min(
+                len(target_blocks) - 1, start_block_number_index + block_batch_size
             )
-    await asyncio.gather(*tasks)
+            for k in range(end_block_number_index - start_block_number_index):
+                block = target_blocks[start_block_number_index + k]
+                tasks.append(
+                    asyncio.ensure_future(
+                        safe_get_price(pricer, int(block), max_concurrency_semaphore)
+                    )
+                )
+        await asyncio.gather(*tasks)
+    else:
+        await pricer.get_price_at_block(target_blocks[0])
     block_to_price = pricer.block_to_price
-    return pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
+    pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
