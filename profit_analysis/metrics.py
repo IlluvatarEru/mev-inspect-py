@@ -40,8 +40,8 @@ def get_top_tokens(profit, chain, top=10, save_to_csv=False):
     top_tokens.columns = ["Token", "Count"]
     n_tx = top_tokens["Count"].sum()
     top_tokens["Frequency"] = top_tokens["Count"] / n_tx
-    top_tokens = top_tokens.head(top)
     if save_to_csv:
         file_name = DATA_PATH + "top_tokens.csv"
         top_tokens.to_csv(file_name, index=False)
+    top_tokens = top_tokens.head(top)
     return top_tokens
