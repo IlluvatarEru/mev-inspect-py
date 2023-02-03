@@ -177,4 +177,4 @@ async def get_uniswap_historical_prices(
     else:
         await pricer.get_price_at_block(target_blocks[0])
     block_to_price = pricer.block_to_price
-    pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
+    return pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
