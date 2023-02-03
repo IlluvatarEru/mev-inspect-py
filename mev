@@ -72,7 +72,7 @@ case "$1" in
         after_block_number=$2
         before_block_number=$3
         save_to_csv=$4
-        echo "Analyzing profit from block $after_block_number to $before_block_number"
+        echo "Analyzing profit from block $after_block_number to $before_block_number, saving to CSV? $save_to_csv"
         kubectl exec -ti deploy/mev-inspect -- \
             poetry run analyze-profit $after_block_number $before_block_number $save_to_csv
 	;;

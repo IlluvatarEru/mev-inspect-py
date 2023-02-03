@@ -45,18 +45,21 @@ from mev_inspect.crud.read import read_profit_from_to
 from mev_inspect.web3_provider import W3
 
 
-def analyze_profit(profit):
+def analyze_profit(profit, save_to_csv=False):
+    print(f"Launching profit analysis, saving to CSV? {save_to_csv}")
+    print(type(save_to_csv))
+    save_to_csv = save_to_csv == "True"
     rpc_url = os.environ.get("RPC_URL")
     chain = get_chain_from_url(rpc_url)
     print("    -------------------------------------------------------------------")
     print("    Profit By Block")
-    print(get_profit_by(profit, BLOCK_KEY, True))
+    print(get_profit_by(profit, BLOCK_KEY, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit By Day")
-    print(get_profit_by(profit, DATE_KEY, True))
+    print(get_profit_by(profit, DATE_KEY, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit By Category")
-    print(get_profit_by(profit, CATEGORY_KEY, True))
+    print(get_profit_by(profit, CATEGORY_KEY, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Skewnes")
     print(compute_profit_skewness(profit))
@@ -65,7 +68,7 @@ def analyze_profit(profit):
     print(compute_profit_kurtosis(profit))
     print("    -------------------------------------------------------------------")
     print("    Top 10 tokens profit was taken in")
-    print(get_top_tokens(profit, chain))
+    print(get_top_tokens(profit, chain, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Distribution")
     print(plot_profit_distribution(profit))
