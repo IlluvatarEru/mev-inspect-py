@@ -60,7 +60,7 @@ async def analyze_profit_command(
     profit = await compute_usd_profit(
         inspect_db_session, block_from, block_to, save_to_csv
     )
-    analyze_profit(profit)
+    analyze_profit(profit, save_to_csv)
 
 
 @cli.command()
