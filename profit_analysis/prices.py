@@ -65,7 +65,6 @@ class UniswapPricer:
         while trials < n_trials:
             trials += 1
             try:
-                print(f"Creating Uniswap Pricer for {token_target_address} ")
                 self._token_target_address = token_target_address
                 if token_target_address != self._token_base_address:
                     factory = self.w3_provider.w3_provider_async.eth.contract(

@@ -133,7 +133,7 @@ def enqueue_block_list_command():
 @cli.command()
 @click.argument("start_block", type=int)
 @click.argument("end_block", type=int)
-@click.argument("batch_size", type=int, default=100)
+@click.argument("batch_size", type=int, default=1024)
 def enqueue_many_blocks_command(start_block: int, end_block: int, batch_size: int):
     broker = connect_broker()
     inspect_many_blocks_actor = dramatiq.actor(
