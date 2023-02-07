@@ -114,6 +114,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         profit[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
     )
     profit[BLOCK_KEY] = pd.to_numeric(profit[BLOCK_KEY], downcast="integer")
+    profit = profit.sort_values(by=[BLOCK_KEY])
     failures = {}
     for i in range(len(tokens)):
         token = tokens[i]
