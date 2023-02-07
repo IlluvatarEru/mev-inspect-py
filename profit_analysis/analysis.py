@@ -30,6 +30,7 @@ from profit_analysis.column_names import (
     TOKEN_DEBT_KEY,
     TOKEN_KEY,
     TOKEN_RECEIVED_KEY,
+    TRANSACTION_HASH_KEY,
 )
 from profit_analysis.constants import DATA_PATH
 from profit_analysis.metrics import (
@@ -312,7 +313,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
             BLOCK_KEY,
             TIMESTAMP_KEY,
             DATE_KEY,
-            "transaction_hash",
+            TRANSACTION_HASH_KEY,
             AMOUNT_RECEIVED_KEY,
             TOKEN_RECEIVED_KEY,
             PRICE_RECEIVED_KEY,
