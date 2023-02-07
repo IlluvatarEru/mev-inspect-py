@@ -157,12 +157,12 @@ async def get_uniswap_historical_prices(
         max_concurrency=10,
         block_batch_size=1024,
 ):
+    target_blocks = [int(b) for b in target_blocks]
     print(f"Requesting prices for {token_address} for blocks={target_blocks}")
-    pricer = UniswapPricer(W3, chain)
-    # we use USDC as a base token
-    await pricer.create(token_address)
     if len(target_blocks) > 1:
-        target_blocks = [int(b) for b in target_blocks]
+        pricer = UniswapPricer(W3, chain)
+        # we use USDC as a base token
+        await pricer.create(token_address)
         tasks = []
         max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
 
@@ -178,12 +178,18 @@ async def get_uniswap_historical_prices(
                     )
                 )
         await asyncio.gather(*tasks)
+        block_to_price = pricer.block_to_price
+        prices = pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
+        prices = prices.loc[prices[PRICE_KEY] > 0]
+        return prices
     else:
         # get prices for 3 blocks in case the nodes are out of sync for the target block
-        await pricer.get_price_at_block(int(target_blocks[0])-1)
-        await pricer.get_price_at_block(int(target_blocks[0]))
-        await pricer.get_price_at_block(int(target_blocks[0])+1)
-    block_to_price = pricer.block_to_price
-    prices = pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
-    prices = prices.loc[prices[PRICE_KEY] > 0]
-    return prices
+        target_block = int(target_blocks[0])
+        target_blocks = [target_block - 1, target_block, target_block + 1]
+        return await get_uniswap_historical_prices(
+            target_blocks,
+            token_address,
+            chain,
+            max_concurrency,
+            block_batch_size,
+        )
