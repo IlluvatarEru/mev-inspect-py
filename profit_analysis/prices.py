@@ -187,7 +187,6 @@ async def get_uniswap_historical_prices(
         prices = prices.loc[prices[PRICE_KEY] > 0]
         prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
         prices = prices.sort_values(by=[BLOCK_KEY])
-        print(f"prices={prices}")
         return prices
     else:
         # get prices for 10 blocks on each side in case the nodes are out of sync for the target block
