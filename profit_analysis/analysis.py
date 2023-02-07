@@ -224,25 +224,38 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     profit_by_received_token[AMOUNT_DEBT_KEY]
                 )
 
-                profit_with_price_token = pd.merge(
+                profit_with_price_token = pd.merge_asof(
                     profit_by_received_token,
                     token_prices,
+                    direction="nearest",
                     on=BLOCK_KEY,
-                    how="left",
-                    suffixes=("", "_y"),
                 )
+                # profit_with_price_token = pd.merge(
+                #     profit_by_received_token,
+                #     token_prices,
+                #     on=BLOCK_KEY,
+                #     how="left",
+                #     suffixes=("", "_y"),
+                # )
 
                 if len(debt_tokens_prices) > 0:
                     debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
                         debt_tokens_prices[TIMESTAMP_KEY]
                     )
                     # merge debt token prices
-                    profit_with_price_token = pd.merge(
+                    # profit_with_price_token = pd.merge(
+                    #     profit_with_price_token,
+                    #     debt_tokens_prices,
+                    #     on=BLOCK_KEY,
+                    #     how="left",
+                    #     suffixes=("", "_y"),
+                    # )
+
+                    profit_with_price_token = pd.merge_asof(
                         profit_with_price_token,
                         debt_tokens_prices,
+                        direction="nearest",
                         on=BLOCK_KEY,
-                        how="left",
-                        suffixes=("", "_y"),
                     )
 
                     category = "liquidation"

@@ -161,7 +161,7 @@ reserves: Dict[str, Tuple[str, str]] = dict()
 
 async def get_classified_traces_from_events(after_block: int, before_block: int):
     start = after_block
-    stride = 300
+    stride = 1024
     while start < before_block:
         begin = start
         end = start + stride if (start + stride) < before_block else before_block - 1
