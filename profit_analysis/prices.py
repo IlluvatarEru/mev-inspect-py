@@ -142,7 +142,7 @@ class UniswapPricer:
             await self.create(self._token_target_address, self._max_retries - n_trials)
             return await self.get_price_at_block(block_number)
         else:
-            return -1.0
+            return 0.0
 
 
 async def safe_get_price(pricer, block, max_concurrency_semaphore):
@@ -183,9 +183,11 @@ async def get_uniswap_historical_prices(
         prices = prices.loc[prices[PRICE_KEY] > 0]
         return prices
     else:
-        # get prices for 3 blocks in case the nodes are out of sync for the target block
+        # get prices for 10 blocks on each side in case the nodes are out of sync for the target block
         target_block = int(target_blocks[0])
-        target_blocks = [target_block - 1, target_block, target_block + 1]
+        n_blocks_on_each_side = 10
+        target_blocks = [target_block - i for i in range(n_blocks_on_each_side)] + [target_block] + \
+                        [target_block + i for i in range(n_blocks_on_each_side)]
         return await get_uniswap_historical_prices(
             target_blocks,
             token_address,
