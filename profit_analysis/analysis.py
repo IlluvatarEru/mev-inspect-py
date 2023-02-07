@@ -238,6 +238,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     token_prices,
                     direction="nearest",
                     on=BLOCK_KEY,
+                    suffixes=("", "_y"),
                 )
 
                 # profit_with_price_token = pd.merge(
@@ -266,6 +267,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                         debt_tokens_prices,
                         direction="nearest",
                         on=BLOCK_KEY,
+                        suffixes=("", "_y"),
                     )
 
                     category = "liquidation"
