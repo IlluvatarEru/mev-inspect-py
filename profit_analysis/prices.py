@@ -60,7 +60,7 @@ class UniswapPricer:
         decimals = await contract.functions.decimals().call()
         return decimals
 
-    async def create(self, token_target_address, max_retries=5):
+    async def create(self, token_target_address, max_retries=10):
         trials = 0
         n_trials = 3
         while trials < n_trials:
@@ -179,7 +179,10 @@ async def get_uniswap_historical_prices(
                 )
         await asyncio.gather(*tasks)
     else:
+        # get prices for 3 blocks in case the nodes are out of sync for the target block
+        await pricer.get_price_at_block(int(target_blocks[0])-1)
         await pricer.get_price_at_block(int(target_blocks[0]))
+        await pricer.get_price_at_block(int(target_blocks[0])+1)
     block_to_price = pricer.block_to_price
     prices = pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
     prices = prices.loc[prices[PRICE_KEY] > 0]
