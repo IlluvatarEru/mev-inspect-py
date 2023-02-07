@@ -135,7 +135,7 @@ class UniswapPricer:
                     return price
                 except Exception as e:
                     print(
-                        f"Error ({trials}/{n_trials}), retrying get_price_at_block  - {e}"
+                        f"Error ({trials}/{n_trials}), retrying get_price_at_block {block_number}  - {e}"
                     )
                     sleep(0.05)
             W3.rotate_rpc_url()
