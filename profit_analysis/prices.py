@@ -179,7 +179,7 @@ async def get_uniswap_historical_prices(
                 )
         await asyncio.gather(*tasks)
     else:
-        await pricer.get_price_at_block(target_blocks[0])
+        await pricer.get_price_at_block(int(target_blocks[0]))
     block_to_price = pricer.block_to_price
     prices = pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
     prices = prices.loc[prices[PRICE_KEY] > 0]
