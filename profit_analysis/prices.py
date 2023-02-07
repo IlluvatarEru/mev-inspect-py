@@ -185,6 +185,7 @@ async def get_uniswap_historical_prices(
             list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
         )
         prices = prices.loc[prices[PRICE_KEY] > 0]
+        prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
         print(f"prices={prices}")
         return prices
     else:
