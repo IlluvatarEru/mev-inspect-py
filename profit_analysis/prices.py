@@ -60,7 +60,7 @@ class UniswapPricer:
         decimals = await contract.functions.decimals().call()
         return decimals
 
-    async def create(self, token_target_address, max_retries=3 * 8):
+    async def create(self, token_target_address, max_retries=24):
         trials = 0
         n_trials = 3
         while trials < n_trials:
