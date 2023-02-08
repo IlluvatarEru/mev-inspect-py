@@ -163,7 +163,6 @@ async def get_classified_traces_from_events(
     after_block: int, before_block: int, stride: int
 ):
     start = after_block
-    print("STRIDE=", stride)
     while start < before_block:
         begin = start
         end = start + stride if (start + stride) < before_block else before_block - 1
