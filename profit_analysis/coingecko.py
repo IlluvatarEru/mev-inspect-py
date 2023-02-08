@@ -72,9 +72,9 @@ def add_cg_ids(profit_by_block, chain, add_cg_id_debt=True):
     addresses_with_nan_cg_ids = profit_by_block.loc[
         pd.isna(profit_by_block[CG_ID_RECEIVED_KEY]), TOKEN_RECEIVED_KEY
     ]
-    print(
-        f"Tokens with missing coingecko ids in mapping:\n{addresses_with_nan_cg_ids.value_counts()}"
-    )
+    addresses_with_nan_cg_ids = addresses_with_nan_cg_ids.value_counts()
+    print(f"Tokens with missing coingecko ids in mapping:\n{addresses_with_nan_cg_ids}")
+    addresses_with_nan_cg_ids.to_csv(DATA_PATH + "addresses_with_nan_cg_ids.csv")
     return profit_by_block[columns_to_return]
 
 
