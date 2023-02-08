@@ -74,7 +74,7 @@ def analyze_profit(profit, save_to_csv=False):
 
 
 async def compute_usd_profit(
-    inspect_db_session, block_from, block_to, save_to_csv=False
+        inspect_db_session, block_from, block_to, save_to_csv=False
 ):
     """
 
@@ -86,6 +86,7 @@ async def compute_usd_profit(
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     profit = add_block_timestamp(profit)
     chain = get_chain_from_url(W3.w3_provider.provider.endpoint_uri)
+    print(f'profit before usd profit:\n{profit[TOKEN_RECEIVED_KEY].unique()}')
     profit = add_cg_ids(profit, chain)
     profit = await get_usd_profit(profit, chain, save_to_csv)
     print(profit)
@@ -194,10 +195,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
                 )
                 for debt_token in (
-                    profit_by_received_token[TOKEN_DEBT_KEY]
-                    .astype(str)
-                    .unique()
-                    .tolist()
+                        profit_by_received_token[TOKEN_DEBT_KEY]
+                                .astype(str)
+                                .unique()
+                                .tolist()
                 ):
                     if debt_token != "":
                         debt_token_decimals = get_decimals(debt_token, chain)
@@ -222,7 +223,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 # apply decimals
                 profit_by_received_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_RECEIVED_KEY]
-                ).div(10**decimals)
+                ).div(10 ** decimals)
                 profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_DEBT_KEY]
                 )
@@ -271,10 +272,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         AMOUNT_DEBT_KEY
     ].fillna(value=0)
     profit_with_price_tokens[PROFIT_USD_KEY] = (
-        profit_with_price_tokens[AMOUNT_RECEIVED_KEY]
-        * profit_with_price_tokens[PRICE_RECEIVED_KEY]
-        - profit_with_price_tokens[AMOUNT_DEBT_KEY]
-        * profit_with_price_tokens[PRICE_DEBT_KEY]
+            profit_with_price_tokens[AMOUNT_RECEIVED_KEY]
+            * profit_with_price_tokens[PRICE_RECEIVED_KEY]
+            - profit_with_price_tokens[AMOUNT_DEBT_KEY]
+            * profit_with_price_tokens[PRICE_DEBT_KEY]
     )
     profit_with_price_tokens = profit_with_price_tokens.reset_index(drop=True)
     profit_with_price_tokens[DATE_KEY] = profit_with_price_tokens[
