@@ -51,10 +51,7 @@ class MEVInspector:
         inspect_db_session: orm.Session,
         block: int,
     ):
-        return await inspect_block(
-            inspect_db_session,
-            block,
-        )
+        return await inspect_block(inspect_db_session, block, stride=1)
 
     async def inspect_many_blocks(
         self,
@@ -62,6 +59,7 @@ class MEVInspector:
         after_block: int,
         before_block: int,
         block_batch_size: int = 1024,
+        stride: int = 1024,
     ):
         tasks = []
         for block_number in range(after_block, before_block, block_batch_size):
@@ -74,6 +72,7 @@ class MEVInspector:
                         inspect_db_session=inspect_db_session,
                         after_block_number=batch_after_block,
                         before_block_number=batch_before_block,
+                        stride=stride,
                     )
                 )
             )
@@ -92,10 +91,12 @@ class MEVInspector:
         inspect_db_session: orm.Session,
         after_block_number: int,
         before_block_number: int,
+        stride: int,
     ):
         async with self.max_concurrency:
             return await inspect_many_blocks(
                 inspect_db_session,
                 after_block_number,
                 before_block_number,
+                stride,
             )

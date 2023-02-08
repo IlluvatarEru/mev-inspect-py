@@ -82,6 +82,7 @@ async def fetch_block_command(block_number: int, rpc: str):
 @cli.command()
 @click.argument("after_block", type=int)
 @click.argument("before_block", type=int)
+@click.argument("stride", type=int)
 @click.option("--rpc", default=lambda: os.environ.get(RPC_URL_ENV, ""))
 @click.option(
     "--max-concurrency",
@@ -96,6 +97,7 @@ async def fetch_block_command(block_number: int, rpc: str):
 async def inspect_many_blocks_command(
     after_block: int,
     before_block: int,
+    stride: int,
     rpc: str,
     max_concurrency: int,
     request_timeout: int,
@@ -111,6 +113,7 @@ async def inspect_many_blocks_command(
         inspect_db_session=inspect_db_session,
         after_block=after_block,
         before_block=before_block,
+        stride=stride,
     )
 
 
@@ -134,7 +137,10 @@ def enqueue_block_list_command():
 @click.argument("start_block", type=int)
 @click.argument("end_block", type=int)
 @click.argument("batch_size", type=int, default=1024)
-def enqueue_many_blocks_command(start_block: int, end_block: int, batch_size: int):
+@click.argument("stride", type=int, default=1024)
+def enqueue_many_blocks_command(
+    start_block: int, end_block: int, batch_size: int, stride: int
+):
     broker = connect_broker()
     inspect_many_blocks_actor = dramatiq.actor(
         inspect_many_blocks_task,
@@ -150,7 +156,9 @@ def enqueue_many_blocks_command(start_block: int, end_block: int, batch_size: in
         for batch_after_block in range(after_block, before_block, batch_size):
             batch_before_block = min(batch_after_block + batch_size, before_block)
             logger.info(f"Sending {batch_after_block} to {batch_before_block}")
-            inspect_many_blocks_actor.send(batch_after_block, batch_before_block)
+            inspect_many_blocks_actor.send(
+                batch_after_block, batch_before_block, stride
+            )
     else:
         after_block = end_block
         before_block = start_block
@@ -158,7 +166,9 @@ def enqueue_many_blocks_command(start_block: int, end_block: int, batch_size: in
         for batch_before_block in range(before_block, after_block, -1 * batch_size):
             batch_after_block = max(batch_before_block - batch_size, after_block)
             logger.info(f"Sending {batch_after_block} to {batch_before_block}")
-            inspect_many_blocks_actor.send(batch_after_block, batch_before_block)
+            inspect_many_blocks_actor.send(
+                batch_after_block, batch_before_block, stride
+            )
 
 
 @cli.command()

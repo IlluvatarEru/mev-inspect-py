@@ -19,11 +19,13 @@ TRAILING_ZEROS = "000000000000000000000000"
 async def inspect_block(
     inspect_db_session: orm.Session,
     block_number: int,
+    stride: int,
 ):
     await inspect_many_blocks(
         inspect_db_session,
         block_number,
         block_number + 1,
+        stride,
     )
 
 
@@ -31,6 +33,7 @@ async def inspect_many_blocks(
     inspect_db_session: orm.Session,
     after_block_number: int,
     before_block_number: int,
+    stride: int,
 ):
     # Cleanup database
     delete_existing_blocks(inspect_db_session, after_block_number, before_block_number)
@@ -41,7 +44,9 @@ async def inspect_many_blocks(
 
     profits: List[TotalProfits] = []
     async for swaps, liquidations in get_classified_traces_from_events(
-        after_block_number, before_block_number
+        after_block_number,
+        before_block_number,
+        stride,
     ):
         arbitrages = get_arbitrages(swaps)
 

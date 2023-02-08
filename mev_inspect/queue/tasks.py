@@ -18,6 +18,7 @@ LOW_PRIORITY = 1
 def inspect_many_blocks_task(
     after_block: int,
     before_block: int,
+    stride: int,
 ):
     with _session_scope(DbMiddleware.get_inspect_sessionmaker()) as inspect_db_session:
         asyncio.run(
@@ -25,6 +26,7 @@ def inspect_many_blocks_task(
                 inspect_db_session=inspect_db_session,
                 after_block=after_block,
                 before_block=before_block,
+                stride=stride,
             )
         )
 
