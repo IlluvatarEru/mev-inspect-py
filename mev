@@ -65,9 +65,10 @@ case "$1" in
         after_block_number=$2
         before_block_number=$3
         stride=$4
+        max_concurrency=$5
         echo "Inspecting from block $after_block_number to $before_block_number"
         kubectl exec -ti deploy/mev-inspect -- \
-            poetry run inspect-many-blocks $after_block_number $before_block_number $stride
+            poetry run inspect-many-blocks --max-concurrency $max_concurrency $after_block_number $before_block_number $stride
 	;;
   analyze-profit)
         after_block_number=$2
