@@ -86,7 +86,6 @@ async def compute_usd_profit(
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     profit = add_block_timestamp(profit)
     chain = get_chain_from_url(W3.w3_provider.provider.endpoint_uri)
-    print(f'profit before usd profit:\n{profit[TOKEN_RECEIVED_KEY].unique()}')
     profit = add_cg_ids(profit, chain)
     profit = await get_usd_profit(profit, chain, save_to_csv)
     print(profit)
