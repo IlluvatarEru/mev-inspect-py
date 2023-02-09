@@ -81,11 +81,11 @@ class UniswapPricer:
 
                     self._pair = pair_contract
                     self._token_base_decimals = (
-                        10
-                        ** await self.get_decimals_from_token(self._token_base_address)
+                            10
+                            ** await self.get_decimals_from_token(self._token_base_address)
                     )
                     self._token_target_decimals = (
-                        10 ** await self.get_decimals_from_token(token_target_address)
+                            10 ** await self.get_decimals_from_token(token_target_address)
                     )
                     token_n = await self.is_target_token0_or_token1()
                     self._is_target_token0_or_token1 = token_n
@@ -127,9 +127,9 @@ class UniswapPricer:
                             token_target_reserves = reserves[1]
                             token_base_reserves = reserves[0]
                         price = (
-                            (float(token_base_reserves) / float(token_target_reserves))
-                            * self._token_target_decimals
-                            / self._token_base_decimals
+                                (float(token_base_reserves) / float(token_target_reserves))
+                                * self._token_target_decimals
+                                / self._token_base_decimals
                         )
 
                     price = float(price)
@@ -152,12 +152,19 @@ async def safe_get_price(pricer, block, max_concurrency_semaphore):
         return await pricer.get_price_at_block(block)
 
 
+async def get_decimal(token_address, chain=POLYGON_CHAIN):
+    pricer = UniswapPricer(W3, chain)
+    await pricer.create(token_address)
+    decimal = await pricer.get_decimals_from_token(token_address)
+    return decimal
+
+
 async def get_uniswap_historical_prices(
-    target_blocks,
-    token_address,
-    chain=POLYGON_CHAIN,
-    max_concurrency=10,
-    block_batch_size=1024,
+        target_blocks,
+        token_address,
+        chain=POLYGON_CHAIN,
+        max_concurrency=10,
+        block_batch_size=1024,
 ):
     """
 
@@ -197,9 +204,9 @@ async def get_uniswap_historical_prices(
         target_block = int(target_blocks[0])
         n_blocks_on_each_side = 10
         target_blocks = (
-            [target_block - i for i in range(n_blocks_on_each_side)]
-            + [target_block]
-            + [target_block + i for i in range(n_blocks_on_each_side)]
+                [target_block - i for i in range(n_blocks_on_each_side)]
+                + [target_block]
+                + [target_block + i for i in range(n_blocks_on_each_side)]
         )
         return await get_uniswap_historical_prices(
             target_blocks,

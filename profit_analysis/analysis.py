@@ -38,7 +38,7 @@ from profit_analysis.metrics import (
     get_top_tokens,
     plot_profit_distribution,
 )
-from profit_analysis.prices import get_uniswap_historical_prices
+from profit_analysis.prices import get_uniswap_historical_prices, get_decimal
 from profit_analysis.token_utils import get_decimals
 
 
@@ -134,9 +134,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 token_prices[TOKEN_RECEIVED_KEY] = token
 
                 # get received token decimals
-                decimals = get_decimals(
-                    profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
-                )
+                # decimals = get_decimals(
+                #     profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
+                # )
+                decimals = get_decimal(token, chain)
 
                 # get debt tokens prices
                 debt_tokens_prices = pd.DataFrame()
@@ -177,7 +178,9 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                                 .tolist()
                 ):
                     if debt_token != "":
-                        debt_token_decimals = get_decimals(debt_token, chain)
+                        # debt_token_decimals = get_decimals(debt_token, chain)
+                        debt_token_decimals = get_decimal(debt_token, chain)
+
                         debt_tokens_decimals = pd.concat(
                             [
                                 debt_tokens_decimals,
