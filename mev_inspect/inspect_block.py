@@ -18,8 +18,8 @@ TRAILING_ZEROS = "000000000000000000000000"
 
 
 async def inspect_block(
-        inspect_db_session: orm.Session,
-        block_number: int,
+    inspect_db_session: orm.Session,
+    block_number: int,
 ):
     await inspect_many_blocks(
         inspect_db_session,
@@ -29,9 +29,9 @@ async def inspect_block(
 
 
 async def inspect_many_blocks(
-        inspect_db_session: orm.Session,
-        after_block_number: int,
-        before_block_number: int,
+    inspect_db_session: orm.Session,
+    after_block_number: int,
+    before_block_number: int,
 ):
     # Cleanup database
     delete_existing_blocks(inspect_db_session, after_block_number, before_block_number)
@@ -42,7 +42,7 @@ async def inspect_many_blocks(
 
     profits: List[TotalProfits] = []
     async for swaps, liquidations in get_classified_traces_from_events(
-            after_block_number, before_block_number
+        after_block_number, before_block_number
     ):
         arbitrages = get_arbitrages(swaps)
 
@@ -101,11 +101,12 @@ async def inspect_many_blocks(
 
 
 def get_checksum_address(token):
-    token = str(token).replace(
-        TRAILING_ZEROS, ""
-    )
+    """
+    tries to return the checksum of address, if it fails just return the address
+    """
+    token = str(token).replace(TRAILING_ZEROS, "")
     try:
         token = Web3.to_checksum_address(token)
     except:
-        print(f'Failed to convert {token} to a checksum address')
+        print(f"Failed to convert {token} to a checksum address")
     return token

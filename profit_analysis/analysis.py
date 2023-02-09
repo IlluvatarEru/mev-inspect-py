@@ -1,18 +1,12 @@
 import os
 
 import pandas as pd
-
-from mev_inspect.crud.read import read_profit_from_to
-from mev_inspect.web3_provider import W3
 from profit_analysis.block_utils import add_block_timestamp
 from profit_analysis.chains import (
     ARBITRUM_CHAIN,
     ETHEREUM_CHAIN,
     OPTIMISM_CHAIN,
     POLYGON_CHAIN,
-)
-from profit_analysis.coingecko import (
-    get_address_to_coingecko_ids_mapping,
 )
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
@@ -38,8 +32,10 @@ from profit_analysis.metrics import (
     get_top_tokens,
     plot_profit_distribution,
 )
-from profit_analysis.prices import get_uniswap_historical_prices, get_decimal
-from profit_analysis.token_utils import get_decimals
+from profit_analysis.prices import get_decimal, get_uniswap_historical_prices
+
+from mev_inspect.crud.read import read_profit_from_to
+from mev_inspect.web3_provider import W3
 
 
 def analyze_profit(profit, save_to_csv=False):
@@ -70,7 +66,7 @@ def analyze_profit(profit, save_to_csv=False):
 
 
 async def compute_usd_profit(
-        inspect_db_session, block_from, block_to, save_to_csv=False
+    inspect_db_session, block_from, block_to, save_to_csv=False
 ):
     """
 
@@ -104,7 +100,6 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
     """
     print(f"Computing USD profit for:\n{profit}")
     tokens = list(profit[TOKEN_RECEIVED_KEY].unique())
-    mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     profit[TIMESTAMP_KEY] = pd.to_datetime(
         profit[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
@@ -134,9 +129,6 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 token_prices[TOKEN_RECEIVED_KEY] = token
 
                 # get received token decimals
-                # decimals = get_decimals(
-                #     profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
-                # )
                 decimals = await get_decimal(token, chain)
 
                 # get debt tokens prices
@@ -150,8 +142,12 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
 
                 for k in range(len(debt_tokens)):
                     debt_token = debt_tokens[k]
-                    if (debt_token != "nan") and (not pd.isna(debt_token)) and (debt_token != '') and (
-                            debt_token != ' '):
+                    if (
+                        (debt_token != "nan")
+                        and (not pd.isna(debt_token))
+                        and (debt_token != "")
+                        and (debt_token != " ")
+                    ):
                         # get prices
                         target_blocks = profit_by_received_token[BLOCK_KEY].unique()
                         debt_token_prices = await get_uniswap_historical_prices(
@@ -172,15 +168,13 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
                 )
                 for debt_token in (
-                        profit_by_received_token[TOKEN_DEBT_KEY]
-                                .astype(str)
-                                .unique()
-                                .tolist()
+                    profit_by_received_token[TOKEN_DEBT_KEY]
+                    .astype(str)
+                    .unique()
+                    .tolist()
                 ):
                     if debt_token != "":
-                        # debt_token_decimals = get_decimals(debt_token, chain)
                         debt_token_decimals = await get_decimal(debt_token, chain)
-
                         debt_tokens_decimals = pd.concat(
                             [
                                 debt_tokens_decimals,
@@ -202,7 +196,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 # apply decimals
                 profit_by_received_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_RECEIVED_KEY]
-                ).div(10 ** decimals)
+                ).div(10**decimals)
                 profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_DEBT_KEY]
                 )
@@ -251,10 +245,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         AMOUNT_DEBT_KEY
     ].fillna(value=0)
     profit_with_price_tokens[PROFIT_USD_KEY] = (
-            profit_with_price_tokens[AMOUNT_RECEIVED_KEY]
-            * profit_with_price_tokens[PRICE_RECEIVED_KEY]
-            - profit_with_price_tokens[AMOUNT_DEBT_KEY]
-            * profit_with_price_tokens[PRICE_DEBT_KEY]
+        profit_with_price_tokens[AMOUNT_RECEIVED_KEY]
+        * profit_with_price_tokens[PRICE_RECEIVED_KEY]
+        - profit_with_price_tokens[AMOUNT_DEBT_KEY]
+        * profit_with_price_tokens[PRICE_DEBT_KEY]
     )
     profit_with_price_tokens = profit_with_price_tokens.reset_index(drop=True)
     profit_with_price_tokens[DATE_KEY] = profit_with_price_tokens[
