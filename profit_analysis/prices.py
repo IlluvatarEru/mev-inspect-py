@@ -6,6 +6,7 @@ from typing import Union
 import pandas as pd
 from profit_analysis.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
 from profit_analysis.column_names import BLOCK_KEY, PRICE_KEY
+from profit_analysis.constants import DATA_PATH
 
 from mev_inspect.web3_provider import W3
 
@@ -34,17 +35,19 @@ def determine_base_token(chain):
     return switcher.get(chain, f"Invalid chain@ {chain}")
 
 
-def determine_factory(chain):
-    chain = chain.lower()
-    switcher = {ETHEREUM_CHAIN: UNISWAP_FACTORY, POLYGON_CHAIN: QUICKSWAP_FACTORY}
-    return switcher.get(chain, f"Invalid chain@ {chain}")
+def read_factories(chain):
+    factories = pd.read_csv(DATA_PATH + "factories.csv")
+    factories = factories.loc[factories["chain"] == chain, "factory"].unique()
+    return factories
 
 
 class UniswapPricer:
     def __init__(self, w3_provider, chain):
         self.w3_provider = w3_provider
         self._chain = chain
-        self._factory = determine_factory(chain)
+        self._factories = read_factories(chain)
+        self._factory_index = 0
+        self._factory = self._factories[self._factory_index]
         self._pair = None
         self._token_base_address = determine_base_token(chain)
         self._token_target_address = None
@@ -60,6 +63,10 @@ class UniswapPricer:
         )
         decimals = await contract.functions.decimals().call()
         return decimals
+
+    def rotate_factory(self):
+        self._factory_index = (self._factory_index + 1) % len(self._factories)
+        self._factory = self._factories[self._factory_index]
 
     async def create(self, token_target_address, max_retries=24):
         if max_retries > 0:
@@ -80,7 +87,10 @@ class UniswapPricer:
                             print(
                                 f"Pair address is null for the pool of USDC vs {token_target_address}"
                             )
-                            return self
+                            self.rotate_factory()
+                            return await self.create(
+                                token_target_address, max_retries - n_trials
+                            )
                         pair_contract = (
                             self.w3_provider.w3_provider_archival.eth.contract(
                                 address=pair_address, abi=UNISWAP_V2_PAIR_ABI
