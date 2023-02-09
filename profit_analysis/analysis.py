@@ -146,7 +146,6 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     .unique()
                     .tolist()
                 )
-                debt_tokens.remove("nan")
 
                 for k in range(len(debt_tokens)):
                     debt_token = debt_tokens[k]
