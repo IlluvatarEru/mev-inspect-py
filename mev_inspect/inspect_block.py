@@ -18,8 +18,8 @@ TRAILING_ZEROS = "000000000000000000000000"
 
 
 async def inspect_block(
-    inspect_db_session: orm.Session,
-    block_number: int,
+        inspect_db_session: orm.Session,
+        block_number: int,
 ):
     await inspect_many_blocks(
         inspect_db_session,
@@ -29,9 +29,9 @@ async def inspect_block(
 
 
 async def inspect_many_blocks(
-    inspect_db_session: orm.Session,
-    after_block_number: int,
-    before_block_number: int,
+        inspect_db_session: orm.Session,
+        after_block_number: int,
+        before_block_number: int,
 ):
     # Cleanup database
     delete_existing_blocks(inspect_db_session, after_block_number, before_block_number)
@@ -42,7 +42,7 @@ async def inspect_many_blocks(
 
     profits: List[TotalProfits] = []
     async for swaps, liquidations in get_classified_traces_from_events(
-        after_block_number, before_block_number
+            after_block_number, before_block_number
     ):
         arbitrages = get_arbitrages(swaps)
 
@@ -62,9 +62,7 @@ async def inspect_many_blocks(
                         transaction_hash=arb.transaction_hash,
                         token_debt="",
                         amount_debt=0,
-                        token_received=Web3.to_checksum_address(str(arb.profit_token_address).replace(
-                            TRAILING_ZEROS, ""
-                        )),
+                        token_received=get_checksum_address(arb.profit_token_address),
                         amount_received=arb.profit_amount,
                     )
                 )
@@ -85,13 +83,9 @@ async def inspect_many_blocks(
                     TotalProfits(
                         block_number=liq.block_number,
                         transaction_hash=liq.transaction_hash,
-                        token_debt=Web3.to_checksum_address(str(liq.debt_token_address).replace(
-                            TRAILING_ZEROS, ""
-                        )),
+                        token_debt=get_checksum_address(liq.debt_token_address),
                         amount_debt=liq.debt_purchase_amount,
-                        token_received=Web3.to_checksum_address(str(liq.received_amount).replace(
-                            TRAILING_ZEROS, ""
-                        )),
+                        token_received=get_checksum_address(liq.received_token_address),
                         amount_received=liq.received_amount,
                     )
                 )
@@ -104,3 +98,14 @@ async def inspect_many_blocks(
         arbitrages_payload = []
         liquidations_payload = []
         count = 0
+
+
+def get_checksum_address(token):
+    token = str(token).replace(
+        TRAILING_ZEROS, ""
+    )
+    try:
+        token = Web3.to_checksum_address(token)
+    except:
+        print(f'Failed to convert {token} to a checksum address')
+    return token
