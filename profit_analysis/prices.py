@@ -157,7 +157,7 @@ async def get_uniswap_historical_prices(
     token_address,
     chain=POLYGON_CHAIN,
     max_concurrency=10,
-    block_batch_size=1024,
+    block_batch_size=2048,
 ):
     target_blocks = [int(b) for b in target_blocks]
     print(f"Requesting prices for {token_address} for blocks={target_blocks}")

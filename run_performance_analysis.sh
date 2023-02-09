@@ -6,7 +6,7 @@ declare -a CONCURRENCY_LEVELS=("8")
 declare -a STRIDES=("128" "256" "512" "1024")
 
 from=$((34500000))
-to=$((from + 1024))
+to=$((from + 100000))
 
 for i in "${CONCURRENCY_LEVELS[@]}"
   do
