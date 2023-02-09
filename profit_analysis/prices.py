@@ -72,13 +72,17 @@ class UniswapPricer:
                         factory = self.w3_provider.w3_provider_archival.eth.contract(
                             address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
                         )
+                        print('Trying to get pair_address')
                         pair_address = await factory.functions.getPair(
                             self._token_base_address, token_target_address
                         ).call()
+                        print(f'pair_address={pair_address}')
+                        print('Trying to get pair_contract')
 
                         pair_contract = self.w3_provider.w3_provider_archival.eth.contract(
                             address=pair_address, abi=UNISWAP_V2_PAIR_ABI
                         )
+                        print(f'pair_contract={pair_contract}')
 
                         self._pair = pair_contract
                         self._token_base_decimals = (
@@ -96,7 +100,7 @@ class UniswapPricer:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
                     sleep(0.05)
             W3.rotate_rpc_url()
-            return await self.create(token_target_address, max_retries-n_trials)
+            return await self.create(token_target_address, max_retries - n_trials)
         else:
             return self
 
@@ -198,7 +202,8 @@ async def get_uniswap_historical_prices(
         prices = pd.DataFrame(
             list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
         )
-        prices = prices.loc[prices[PRICE_KEY] > 0]
+        if len(prices) > 0:
+            prices = prices.loc[prices[PRICE_KEY] > 0]
         prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
         prices = prices.sort_values(by=[BLOCK_KEY])
         return prices

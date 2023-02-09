@@ -208,8 +208,8 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 )
 
                 profit_with_price_token = pd.merge_asof(
-                    profit_by_received_token,
-                    token_prices,
+                    profit_by_received_token.sort_values(BLOCK_KEY),
+                    token_prices.sort_values(BLOCK_KEY),
                     direction="nearest",
                     on=BLOCK_KEY,
                     suffixes=("", "_y"),
@@ -221,8 +221,8 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     )
 
                     profit_with_price_token = pd.merge_asof(
-                        profit_with_price_token,
-                        debt_tokens_prices,
+                        profit_with_price_token.sort_values(BLOCK_KEY),
+                        debt_tokens_prices.sort_values(BLOCK_KEY),
                         direction="nearest",
                         on=BLOCK_KEY,
                         suffixes=("", "_y"),
