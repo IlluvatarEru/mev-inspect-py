@@ -149,7 +149,8 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
 
                 for k in range(len(debt_tokens)):
                     debt_token = debt_tokens[k]
-                    if (debt_token != "nan") and (not pd.isna(debt_token)):
+                    if (debt_token != "nan") and (not pd.isna(debt_token)) and (debt_token != '') and (
+                            debt_token != ' '):
                         # get prices
                         target_blocks = profit_by_received_token[BLOCK_KEY].unique()
                         debt_token_prices = await get_uniswap_historical_prices(
