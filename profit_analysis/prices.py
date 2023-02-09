@@ -61,41 +61,44 @@ class UniswapPricer:
         return decimals
 
     async def create(self, token_target_address, max_retries=24):
-        trials = 0
-        n_trials = 3
-        while trials < n_trials:
-            trials += 1
-            try:
-                self._token_target_address = token_target_address
-                if token_target_address != self._token_base_address:
-                    factory = self.w3_provider.w3_provider_archival.eth.contract(
-                        address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
-                    )
-                    pair_address = await factory.functions.getPair(
-                        self._token_base_address, token_target_address
-                    ).call()
+        if max_retries > 0:
+            trials = 0
+            n_trials = 3
+            while trials < n_trials:
+                trials += 1
+                try:
+                    self._token_target_address = token_target_address
+                    if token_target_address != self._token_base_address:
+                        factory = self.w3_provider.w3_provider_archival.eth.contract(
+                            address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
+                        )
+                        pair_address = await factory.functions.getPair(
+                            self._token_base_address, token_target_address
+                        ).call()
 
-                    pair_contract = self.w3_provider.w3_provider_archival.eth.contract(
-                        address=pair_address, abi=UNISWAP_V2_PAIR_ABI
-                    )
+                        pair_contract = self.w3_provider.w3_provider_archival.eth.contract(
+                            address=pair_address, abi=UNISWAP_V2_PAIR_ABI
+                        )
 
-                    self._pair = pair_contract
-                    self._token_base_decimals = (
-                            10
-                            ** await self.get_decimals_from_token(self._token_base_address)
-                    )
-                    self._token_target_decimals = (
-                            10 ** await self.get_decimals_from_token(token_target_address)
-                    )
-                    token_n = await self.is_target_token0_or_token1()
-                    self._is_target_token0_or_token1 = token_n
-                    self._max_retries = max_retries
-                return self
-            except Exception as e:
-                print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
-                sleep(0.05)
-        W3.rotate_rpc_url()
-        return await self.create(token_target_address, max_retries)
+                        self._pair = pair_contract
+                        self._token_base_decimals = (
+                                10
+                                ** await self.get_decimals_from_token(self._token_base_address)
+                        )
+                        self._token_target_decimals = (
+                                10 ** await self.get_decimals_from_token(token_target_address)
+                        )
+                        token_n = await self.is_target_token0_or_token1()
+                        self._is_target_token0_or_token1 = token_n
+                        self._max_retries = max_retries
+                    return self
+                except Exception as e:
+                    print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
+                    sleep(0.05)
+            W3.rotate_rpc_url()
+            return await self.create(token_target_address, max_retries)
+        else:
+            return self
 
     async def is_target_token0_or_token1(self):
         if await self._pair.functions.token0().call() == self._token_target_address:
@@ -155,7 +158,6 @@ async def safe_get_price(pricer, block, max_concurrency_semaphore):
 async def get_decimal(token_address, chain=POLYGON_CHAIN):
     print(f"Requesting decimals for {token_address}")
     pricer = UniswapPricer(W3, chain)
-    #await pricer.create(token_address)
     decimal = await pricer.get_decimals_from_token(token_address)
     return decimal
 
