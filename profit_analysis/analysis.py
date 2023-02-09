@@ -1,6 +1,9 @@
 import os
 
 import pandas as pd
+
+from mev_inspect.crud.read import read_profit_from_to
+from mev_inspect.web3_provider import W3
 from profit_analysis.block_utils import add_block_timestamp
 from profit_analysis.chains import (
     ARBITRUM_CHAIN,
@@ -9,17 +12,13 @@ from profit_analysis.chains import (
     POLYGON_CHAIN,
 )
 from profit_analysis.coingecko import (
-    add_cg_ids,
     get_address_to_coingecko_ids_mapping,
-    get_token_address_from_lower,
 )
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
     AMOUNT_RECEIVED_KEY,
     BLOCK_KEY,
     CATEGORY_KEY,
-    CG_ID_DEBT_KEY,
-    CG_ID_RECEIVED_KEY,
     DATE_KEY,
     DECIMAL_DEBT_KEY,
     PRICE_DEBT_KEY,
@@ -41,9 +40,6 @@ from profit_analysis.metrics import (
 )
 from profit_analysis.prices import get_uniswap_historical_prices
 from profit_analysis.token_utils import get_decimals
-
-from mev_inspect.crud.read import read_profit_from_to
-from mev_inspect.web3_provider import W3
 
 
 def analyze_profit(profit, save_to_csv=False):
@@ -86,7 +82,6 @@ async def compute_usd_profit(
     profit = read_profit_from_to(inspect_db_session, block_from, block_to)
     profit = add_block_timestamp(profit)
     chain = get_chain_from_url(W3.w3_provider.provider.endpoint_uri)
-    profit = add_cg_ids(profit, chain)
     profit = await get_usd_profit(profit, chain, save_to_csv)
     print(profit)
     return profit
@@ -98,8 +93,8 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
     compute the profit of each mev transaction.
 
     :param profit: pd.DataFrame, with columns = ['block_number', 'timestamp', 'transaction_hash',
-        'token_debt', 'amount_debt', 'cg_id_debt',
-       'token_received', 'amount_received', 'cg_id_received']
+        'token_debt', 'amount_debt',
+       'token_received', 'amount_received']
     :param chain: str, the blockchain
     :param save_to_csv: bool, whether to save the analysed profits to csv or not
     :return: pd.DataFrame, with columns = ['block_number', 'timestamp', 'date', 'transaction_hash',
@@ -108,7 +103,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
        'profit_usd' ]
     """
     print(f"Computing USD profit for:\n{profit}")
-    tokens = list(profit[CG_ID_RECEIVED_KEY].unique())
+    tokens = list(profit[TOKEN_RECEIVED_KEY].unique())
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     profit[TIMESTAMP_KEY] = pd.to_datetime(
@@ -121,21 +116,16 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         token = tokens[i]
         print(f"Processing {token} ")
         if (token != "nan") and (not pd.isna(token)):
-            token_address_lower = profit.loc[
-                profit[CG_ID_RECEIVED_KEY] == token, TOKEN_RECEIVED_KEY
-            ].values[0]
-            print(f"for which address=({token_address_lower})")
             try:
-                token_address = get_token_address_from_lower(token_address_lower, chain)
                 profit_by_received_token = pd.DataFrame(
-                    profit.loc[profit[CG_ID_RECEIVED_KEY] == token]
+                    profit.loc[profit[TOKEN_RECEIVED_KEY] == token]
                 )
 
                 # get prices
                 target_blocks = profit_by_received_token[BLOCK_KEY].unique()
                 token_prices = await get_uniswap_historical_prices(
                     target_blocks,
-                    token_address,
+                    token,
                     chain,
                 )
                 token_prices = token_prices.rename(
@@ -150,37 +140,24 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
 
                 # get debt tokens prices
                 debt_tokens_prices = pd.DataFrame()
-                debt_cg_ids = (
-                    profit_by_received_token[CG_ID_DEBT_KEY]
+                debt_tokens = (
+                    profit_by_received_token[TOKEN_DEBT_KEY]
                     .astype(str)
                     .unique()
                     .tolist()
                 )
-                debt_cg_ids.remove("nan")
+                debt_tokens.remove("nan")
 
-                for k in range(len(debt_cg_ids)):
-                    cg_id_debt = debt_cg_ids[k]
-                    if cg_id_debt != "nan":
-                        token_address_debt_lower = profit.loc[
-                            profit[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
-                        ].values[0]
-
-                        token_address_debt = get_token_address_from_lower(
-                            token_address_debt_lower, chain
-                        )
-
+                for k in range(len(debt_tokens)):
+                    debt_token = debt_tokens[k]
+                    if debt_token != "nan":
                         # get prices
                         target_blocks = profit_by_received_token[BLOCK_KEY].unique()
                         debt_token_prices = await get_uniswap_historical_prices(
                             target_blocks,
-                            token_address_debt,
+                            debt_token,
                             chain,
                         )
-
-                        debt_token_prices[CG_ID_DEBT_KEY] = cg_id_debt
-                        debt_token = mapping.loc[
-                            mapping[CG_ID_DEBT_KEY] == cg_id_debt, TOKEN_DEBT_KEY
-                        ].values[0]
                         debt_token_prices[TOKEN_DEBT_KEY] = debt_token
                         debt_tokens_prices = pd.concat(
                             [debt_tokens_prices, debt_token_prices]
@@ -259,9 +236,9 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     [profit_with_price_tokens, profit_with_price_token]
                 )
             except Exception as e:
-                print(f"    Failed for token={token_address_lower}")
+                print(f"    Failed for token={token}")
                 print(e)
-                failures[token_address_lower] = e
+                failures[token] = e
     print("Finished processing all tokens")
     print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
     profit_with_price_tokens[PRICE_DEBT_KEY] = profit_with_price_tokens[

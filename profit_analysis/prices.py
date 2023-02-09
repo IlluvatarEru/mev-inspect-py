@@ -159,6 +159,10 @@ async def get_uniswap_historical_prices(
     max_concurrency=10,
     block_batch_size=1024,
 ):
+    """
+
+    :return: pd.DataFrame, with columns = [BLOCK_KEY, PRICE_KEY]
+    """
     target_blocks = [int(b) for b in target_blocks]
     print(f"Requesting prices for {token_address} for blocks={target_blocks}")
     if len(target_blocks) > 1:
