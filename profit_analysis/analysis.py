@@ -137,7 +137,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 # decimals = get_decimals(
                 #     profit_by_received_token[TOKEN_RECEIVED_KEY].values[0], chain
                 # )
-                decimals = get_decimal(token, chain)
+                decimals = await get_decimal(token, chain)
 
                 # get debt tokens prices
                 debt_tokens_prices = pd.DataFrame()
@@ -179,7 +179,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 ):
                     if debt_token != "":
                         # debt_token_decimals = get_decimals(debt_token, chain)
-                        debt_token_decimals = get_decimal(debt_token, chain)
+                        debt_token_decimals = await get_decimal(debt_token, chain)
 
                         debt_tokens_decimals = pd.concat(
                             [
