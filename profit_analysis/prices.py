@@ -22,6 +22,7 @@ UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 QUICKSWAP_FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
 USDC_TOKEN_ADDRESS_ETHEREUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 USDC_TOKEN_ADDRESS_POLYGON = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 def determine_base_token(chain):
@@ -77,6 +78,9 @@ class UniswapPricer:
                             self._token_base_address, token_target_address
                         ).call()
                         print(f'pair_address={pair_address}')
+                        if pair_address == NULL_ADDRESS:
+                            print(f'Pair address is null for the pool of USDC vs {token_target_address}')
+                            return self
                         print('Trying to get pair_contract')
 
                         pair_contract = self.w3_provider.w3_provider_archival.eth.contract(
