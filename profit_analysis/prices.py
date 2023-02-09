@@ -153,8 +153,9 @@ async def safe_get_price(pricer, block, max_concurrency_semaphore):
 
 
 async def get_decimal(token_address, chain=POLYGON_CHAIN):
+    print(f"Requesting decimals for {token_address}")
     pricer = UniswapPricer(W3, chain)
-    await pricer.create(token_address)
+    #await pricer.create(token_address)
     decimal = await pricer.get_decimals_from_token(token_address)
     return decimal
 
