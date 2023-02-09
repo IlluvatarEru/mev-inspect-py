@@ -96,7 +96,7 @@ class UniswapPricer:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
                     sleep(0.05)
             W3.rotate_rpc_url()
-            return await self.create(token_target_address, max_retries)
+            return await self.create(token_target_address, max_retries-n_trials)
         else:
             return self
 
