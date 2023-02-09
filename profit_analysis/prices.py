@@ -50,33 +50,35 @@ class UniswapPricer:
         self._token_base_decimals = None
         self._token_target_decimals = None
         self._is_target_token0_or_token1 = None
+        self._max_retries = None
         self.block_to_price = {}
 
     async def get_decimals_from_token(self, token):
-        contract = self.w3_provider.w3_provider_async.eth.contract(
+        contract = self.w3_provider.w3_provider_archival.eth.contract(
             address=token, abi=ERC20_ABI
         )
         decimals = await contract.functions.decimals().call()
         return decimals
 
-    async def create(self, token_target_address):
+    async def create(self, token_target_address, max_retries=24):
         trials = 0
         n_trials = 3
         while trials < n_trials:
             trials += 1
             try:
-                print(f"Creating Uniswap Pricer for {token_target_address} ")
                 self._token_target_address = token_target_address
                 if token_target_address != self._token_base_address:
-                    factory = self.w3_provider.w3_provider_async.eth.contract(
+                    factory = self.w3_provider.w3_provider_archival.eth.contract(
                         address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
                     )
                     pair_address = await factory.functions.getPair(
                         self._token_base_address, token_target_address
                     ).call()
-                    pair_contract = self.w3_provider.w3_provider_async.eth.contract(
+
+                    pair_contract = self.w3_provider.w3_provider_archival.eth.contract(
                         address=pair_address, abi=UNISWAP_V2_PAIR_ABI
                     )
+
                     self._pair = pair_contract
                     self._token_base_decimals = (
                         10
@@ -87,12 +89,13 @@ class UniswapPricer:
                     )
                     token_n = await self.is_target_token0_or_token1()
                     self._is_target_token0_or_token1 = token_n
+                    self._max_retries = max_retries
                 return self
             except Exception as e:
                 print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
                 sleep(0.05)
         W3.rotate_rpc_url()
-        return await self.create(token_target_address)
+        return await self.create(token_target_address, max_retries)
 
     async def is_target_token0_or_token1(self):
         if await self._pair.functions.token0().call() == self._token_target_address:
@@ -107,38 +110,41 @@ class UniswapPricer:
     async def get_price_at_block(self, block_number: Union[int, float]):
         trials = 0
         n_trials = 3
-        while trials < n_trials:
-            trials += 1
-            try:
-                if self._token_target_address == self._token_base_address:
-                    price = 1.0
-                else:
-                    reserves = await self._pair.functions.getReserves().call(
-                        block_identifier=int(block_number)
-                    )
-                    if self._is_target_token0_or_token1 == 0:
-                        token_target_reserves = reserves[0]
-                        token_base_reserves = reserves[1]
+        if self._max_retries > 0:
+            while trials < n_trials:
+                trials += 1
+                try:
+                    if self._token_target_address == self._token_base_address:
+                        price = 1.0
                     else:
-                        token_target_reserves = reserves[1]
-                        token_base_reserves = reserves[0]
-                    price = (
-                        (float(token_base_reserves) / float(token_target_reserves))
-                        * self._token_target_decimals
-                        / self._token_base_decimals
-                    )
+                        reserves = await self._pair.functions.getReserves().call(
+                            block_identifier=int(block_number)
+                        )
+                        if self._is_target_token0_or_token1 == 0:
+                            token_target_reserves = reserves[0]
+                            token_base_reserves = reserves[1]
+                        else:
+                            token_target_reserves = reserves[1]
+                            token_base_reserves = reserves[0]
+                        price = (
+                            (float(token_base_reserves) / float(token_target_reserves))
+                            * self._token_target_decimals
+                            / self._token_base_decimals
+                        )
 
-                price = float(price)
-                self.block_to_price[block_number] = price
-                return price
-            except Exception as e:
-                print(
-                    f"Error ({trials}/{n_trials}), retrying get_price_at_block  - {e}"
-                )
-                sleep(0.05)
-        W3.rotate_rpc_url()
-        await self.create(self._token_target_address)
-        return await self.get_price_at_block(block_number)
+                    price = float(price)
+                    self.block_to_price[block_number] = price
+                    return price
+                except Exception as e:
+                    print(
+                        f"Error ({trials}/{n_trials}), retrying get_price_at_block {block_number}  - {e}"
+                    )
+                    sleep(0.05)
+            W3.rotate_rpc_url()
+            await self.create(self._token_target_address, self._max_retries - n_trials)
+            return await self.get_price_at_block(block_number)
+        else:
+            return 0.0
 
 
 async def safe_get_price(pricer, block, max_concurrency_semaphore):
@@ -154,23 +160,47 @@ async def get_uniswap_historical_prices(
     block_batch_size=1024,
 ):
     target_blocks = [int(b) for b in target_blocks]
-    pricer = UniswapPricer(W3, chain)
-    # we use USDC as a base token
-    await pricer.create(token_address)
-    tasks = []
-    max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
+    print(f"Requesting prices for {token_address} for blocks={target_blocks}")
+    if len(target_blocks) > 1:
+        pricer = UniswapPricer(W3, chain)
+        # we use USDC as a base token
+        await pricer.create(token_address)
+        tasks = []
+        max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
 
-    for start_block_number_index in range(0, len(target_blocks), block_batch_size):
-        end_block_number_index = min(
-            len(target_blocks) - 1, start_block_number_index + block_batch_size
-        )
-        for k in range(end_block_number_index - start_block_number_index):
-            block = target_blocks[start_block_number_index + k]
-            tasks.append(
-                asyncio.ensure_future(
-                    safe_get_price(pricer, int(block), max_concurrency_semaphore)
-                )
+        for start_block_number_index in range(0, len(target_blocks), block_batch_size):
+            end_block_number_index = min(
+                len(target_blocks) - 1, start_block_number_index + block_batch_size
             )
-    await asyncio.gather(*tasks)
-    block_to_price = pricer.block_to_price
-    return pd.DataFrame(list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY])
+            for k in range(end_block_number_index - start_block_number_index):
+                block = target_blocks[start_block_number_index + k]
+                tasks.append(
+                    asyncio.ensure_future(
+                        safe_get_price(pricer, int(block), max_concurrency_semaphore)
+                    )
+                )
+        await asyncio.gather(*tasks)
+        block_to_price = pricer.block_to_price
+        prices = pd.DataFrame(
+            list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
+        )
+        prices = prices.loc[prices[PRICE_KEY] > 0]
+        prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
+        prices = prices.sort_values(by=[BLOCK_KEY])
+        return prices
+    else:
+        # get prices for 10 blocks on each side in case the nodes are out of sync for the target block
+        target_block = int(target_blocks[0])
+        n_blocks_on_each_side = 10
+        target_blocks = (
+            [target_block - i for i in range(n_blocks_on_each_side)]
+            + [target_block]
+            + [target_block + i for i in range(n_blocks_on_each_side)]
+        )
+        return await get_uniswap_historical_prices(
+            target_blocks,
+            token_address,
+            chain,
+            max_concurrency,
+            block_batch_size,
+        )

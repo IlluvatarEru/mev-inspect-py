@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List
 
 from sqlalchemy import orm
+from web3 import Web3
 
 from mev_inspect.arbitrages import get_arbitrages
 from mev_inspect.block import get_classified_traces_from_events
@@ -61,9 +62,9 @@ async def inspect_many_blocks(
                         transaction_hash=arb.transaction_hash,
                         token_debt="",
                         amount_debt=0,
-                        token_received=str(arb.profit_token_address).replace(
+                        token_received=Web3.to_checksum_address(str(arb.profit_token_address).replace(
                             TRAILING_ZEROS, ""
-                        ),
+                        )),
                         amount_received=arb.profit_amount,
                     )
                 )
@@ -84,13 +85,13 @@ async def inspect_many_blocks(
                     TotalProfits(
                         block_number=liq.block_number,
                         transaction_hash=liq.transaction_hash,
-                        token_debt=str(liq.debt_token_address).replace(
+                        token_debt=Web3.to_checksum_address(str(liq.debt_token_address).replace(
                             TRAILING_ZEROS, ""
-                        ),
+                        )),
                         amount_debt=liq.debt_purchase_amount,
-                        token_received=str(liq.received_amount).replace(
+                        token_received=Web3.to_checksum_address(str(liq.received_amount).replace(
                             TRAILING_ZEROS, ""
-                        ),
+                        )),
                         amount_received=liq.received_amount,
                     )
                 )

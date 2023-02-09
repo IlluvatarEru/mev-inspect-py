@@ -9,14 +9,14 @@ blockFrom=$((34500000))
 nBlocks=500000
 blockTo=$((blockFrom+nBlocks))
 startDate=$(date +%s)
-startDateFormatted=$(date -d @$startDate)
+startDateFormatted=$(date +"%Y-%m-%d-%H:%M:%S.")$((startDate))
 echo "Starting analysis from block=${blockFrom} for ${nBlocks} blocks on the ${startDateFormatted}"
 ./mev inspect-many $blockFrom $blockTo
 ./mev analyze-profit $blockFrom $blockTo True
 endDate=$(date +%s)
-endDateFormatted=$(date -d @endDate)
+endDateFormatted=$(date +"%Y-%m-%d-%H:%M:%S.")$(($endDate))
 echo "Finished analysis of ${nBlocks} blocks on the ${endDateFormatted}. It took $(( (endDate - startDate)/60 )) minutes."
-declare -a file_names=("profit_by_date.csv" "profit_by_block_number.csv" "profit_by_category.csv" "usd_profit.csv" "analyze_profit_failures.csv", "profit_distribution.png")
+declare -a file_names=("profit_by_date.csv" "profit_by_block_number.csv" "profit_by_category.csv" "usd_profit.csv"  "top_tokens.csv" "profit_distribution.png" "analyze_profit_failures.csv" "addresses_with_nan_cg_ids.csv")
 for fname in "${file_names[@]}"
 do
   kubectl cp $mevInspectPoolId:resources/$fname $fname;

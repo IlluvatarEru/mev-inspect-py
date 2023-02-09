@@ -61,7 +61,7 @@ class MEVInspector:
         inspect_db_session: orm.Session,
         after_block: int,
         before_block: int,
-        block_batch_size: int = 100,
+        block_batch_size: int = 1024,
     ):
         tasks = []
         for block_number in range(after_block, before_block, block_batch_size):

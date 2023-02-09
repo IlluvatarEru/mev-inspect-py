@@ -30,6 +30,7 @@ from profit_analysis.column_names import (
     TOKEN_DEBT_KEY,
     TOKEN_KEY,
     TOKEN_RECEIVED_KEY,
+    TRANSACTION_HASH_KEY,
 )
 from profit_analysis.constants import DATA_PATH
 from profit_analysis.metrics import (
@@ -45,18 +46,19 @@ from mev_inspect.crud.read import read_profit_from_to
 from mev_inspect.web3_provider import W3
 
 
-def analyze_profit(profit):
+def analyze_profit(profit, save_to_csv=False):
+    print(f"Launching profit analysis, saving to CSV? {save_to_csv}")
     rpc_url = os.environ.get("RPC_URL")
     chain = get_chain_from_url(rpc_url)
     print("    -------------------------------------------------------------------")
     print("    Profit By Block")
-    print(get_profit_by(profit, BLOCK_KEY, True))
+    print(get_profit_by(profit, BLOCK_KEY, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit By Day")
-    print(get_profit_by(profit, DATE_KEY, True))
+    print(get_profit_by(profit, DATE_KEY, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit By Category")
-    print(get_profit_by(profit, CATEGORY_KEY, True))
+    print(get_profit_by(profit, CATEGORY_KEY, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Skewnes")
     print(compute_profit_skewness(profit))
@@ -65,14 +67,14 @@ def analyze_profit(profit):
     print(compute_profit_kurtosis(profit))
     print("    -------------------------------------------------------------------")
     print("    Top 10 tokens profit was taken in")
-    print(get_top_tokens(profit, chain))
+    print(get_top_tokens(profit, chain, 10, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Distribution")
     print(plot_profit_distribution(profit))
 
 
 async def compute_usd_profit(
-    inspect_db_session, block_from, block_to, save_to_csv=False
+        inspect_db_session, block_from, block_to, save_to_csv=False
 ):
     """
 
@@ -105,12 +107,15 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
        'amount_debt', 'token_debt', 'price_debt',
        'profit_usd' ]
     """
+    print(f"Computing USD profit for:\n{profit}")
     tokens = list(profit[CG_ID_RECEIVED_KEY].unique())
     mapping = get_address_to_coingecko_ids_mapping(chain)
     profit_with_price_tokens = pd.DataFrame()
     profit[TIMESTAMP_KEY] = pd.to_datetime(
         profit[TIMESTAMP_KEY], format="%Y-%m-%d %H:%M:%S"
     )
+    profit[BLOCK_KEY] = pd.to_numeric(profit[BLOCK_KEY], downcast="integer")
+    profit = profit.sort_values(by=[BLOCK_KEY])
     failures = {}
     for i in range(len(tokens)):
         token = tokens[i]
@@ -189,10 +194,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     columns=[TOKEN_DEBT_KEY, DECIMAL_DEBT_KEY]
                 )
                 for debt_token in (
-                    profit_by_received_token[TOKEN_DEBT_KEY]
-                    .astype(str)
-                    .unique()
-                    .tolist()
+                        profit_by_received_token[TOKEN_DEBT_KEY]
+                                .astype(str)
+                                .unique()
+                                .tolist()
                 ):
                     if debt_token != "":
                         debt_token_decimals = get_decimals(debt_token, chain)
@@ -217,16 +222,16 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 # apply decimals
                 profit_by_received_token[AMOUNT_RECEIVED_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_RECEIVED_KEY]
-                ).div(10**decimals)
+                ).div(10 ** decimals)
                 profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_DEBT_KEY]
                 )
 
-                profit_with_price_token = pd.merge(
+                profit_with_price_token = pd.merge_asof(
                     profit_by_received_token,
                     token_prices,
+                    direction="nearest",
                     on=BLOCK_KEY,
-                    how="left",
                     suffixes=("", "_y"),
                 )
 
@@ -234,12 +239,12 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
                         debt_tokens_prices[TIMESTAMP_KEY]
                     )
-                    # merge debt token prices
-                    profit_with_price_token = pd.merge(
+
+                    profit_with_price_token = pd.merge_asof(
                         profit_with_price_token,
                         debt_tokens_prices,
+                        direction="nearest",
                         on=BLOCK_KEY,
-                        how="left",
                         suffixes=("", "_y"),
                     )
 
@@ -266,10 +271,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         AMOUNT_DEBT_KEY
     ].fillna(value=0)
     profit_with_price_tokens[PROFIT_USD_KEY] = (
-        profit_with_price_tokens[AMOUNT_RECEIVED_KEY]
-        * profit_with_price_tokens[PRICE_RECEIVED_KEY]
-        - profit_with_price_tokens[AMOUNT_DEBT_KEY]
-        * profit_with_price_tokens[PRICE_DEBT_KEY]
+            profit_with_price_tokens[AMOUNT_RECEIVED_KEY]
+            * profit_with_price_tokens[PRICE_RECEIVED_KEY]
+            - profit_with_price_tokens[AMOUNT_DEBT_KEY]
+            * profit_with_price_tokens[PRICE_DEBT_KEY]
     )
     profit_with_price_tokens = profit_with_price_tokens.reset_index(drop=True)
     profit_with_price_tokens[DATE_KEY] = profit_with_price_tokens[
@@ -285,7 +290,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
             BLOCK_KEY,
             TIMESTAMP_KEY,
             DATE_KEY,
-            "transaction_hash",
+            TRANSACTION_HASH_KEY,
             AMOUNT_RECEIVED_KEY,
             TOKEN_RECEIVED_KEY,
             PRICE_RECEIVED_KEY,
@@ -308,7 +313,6 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
     profit_by_block.rename(columns={"": col}, inplace=True)
     if save_to_csv:
         file_name = DATA_PATH + "profit_by_" + col + ".csv"
-        print(file_name)
         profit_by_block.to_csv(file_name, index=False)
     return profit_by_block
 
