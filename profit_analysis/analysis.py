@@ -2,12 +2,7 @@ import os
 
 import pandas as pd
 from profit_analysis.block_utils import add_block_timestamp
-from profit_analysis.chains import (
-    ARBITRUM_CHAIN,
-    ETHEREUM_CHAIN,
-    OPTIMISM_CHAIN,
-    POLYGON_CHAIN,
-)
+from profit_analysis.chains import POLYGON_CHAIN
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
     AMOUNT_RECEIVED_KEY,
@@ -292,13 +287,15 @@ def get_profit_by(profit_with_price_tokens, col, save_to_csv=False):
 
 
 def get_chain_from_url(url):
-    if "ether" in url:
-        return ETHEREUM_CHAIN
-    elif "poly" in url:
-        return POLYGON_CHAIN
-    elif "arb" in url:
-        return ARBITRUM_CHAIN
-    elif "opti" in url:
-        return OPTIMISM_CHAIN
-    else:
-        raise Exception(f"Could not determine blockchain from url: {url}")
+    print(url)
+    return POLYGON_CHAIN
+    # if "ether" in url:
+    #     return ETHEREUM_CHAIN
+    # elif "poly" in url:
+    #     return POLYGON_CHAIN
+    # elif "arb" in url:
+    #     return ARBITRUM_CHAIN
+    # elif "opti" in url:
+    #     return OPTIMISM_CHAIN
+    # else:
+    #     raise Exception(f"Could not determine blockchain from url: {url}")
