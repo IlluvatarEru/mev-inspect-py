@@ -6,6 +6,7 @@ from typing import Union
 import pandas as pd
 from profit_analysis.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
 from profit_analysis.column_names import BLOCK_KEY, PRICE_KEY
+from profit_analysis.constants import DATA_PATH
 
 from mev_inspect.web3_provider import W3
 
@@ -22,6 +23,7 @@ UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 QUICKSWAP_FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
 USDC_TOKEN_ADDRESS_ETHEREUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 USDC_TOKEN_ADDRESS_POLYGON = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 def determine_base_token(chain):
@@ -33,17 +35,19 @@ def determine_base_token(chain):
     return switcher.get(chain, f"Invalid chain@ {chain}")
 
 
-def determine_factory(chain):
-    chain = chain.lower()
-    switcher = {ETHEREUM_CHAIN: UNISWAP_FACTORY, POLYGON_CHAIN: QUICKSWAP_FACTORY}
-    return switcher.get(chain, f"Invalid chain@ {chain}")
+def read_factories(chain):
+    factories = pd.read_csv(DATA_PATH + "factories.csv")
+    factories = factories.loc[factories["chain"] == chain, "factory"].unique()
+    return factories
 
 
 class UniswapPricer:
     def __init__(self, w3_provider, chain):
         self.w3_provider = w3_provider
         self._chain = chain
-        self._factory = determine_factory(chain)
+        self._factories = read_factories(chain)
+        self._factory_index = 0
+        self._factory = self._factories[self._factory_index]
         self._pair = None
         self._token_base_address = determine_base_token(chain)
         self._token_target_address = None
@@ -60,42 +64,60 @@ class UniswapPricer:
         decimals = await contract.functions.decimals().call()
         return decimals
 
+    def rotate_factory(self):
+        self._factory_index = (self._factory_index + 1) % len(self._factories)
+        self._factory = self._factories[self._factory_index]
+
     async def create(self, token_target_address, max_retries=24):
-        trials = 0
-        n_trials = 3
-        while trials < n_trials:
-            trials += 1
-            try:
-                self._token_target_address = token_target_address
-                if token_target_address != self._token_base_address:
-                    factory = self.w3_provider.w3_provider_archival.eth.contract(
-                        address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
-                    )
-                    pair_address = await factory.functions.getPair(
-                        self._token_base_address, token_target_address
-                    ).call()
-
-                    pair_contract = self.w3_provider.w3_provider_archival.eth.contract(
-                        address=pair_address, abi=UNISWAP_V2_PAIR_ABI
-                    )
-
-                    self._pair = pair_contract
-                    self._token_base_decimals = (
-                        10
-                        ** await self.get_decimals_from_token(self._token_base_address)
-                    )
-                    self._token_target_decimals = (
-                        10 ** await self.get_decimals_from_token(token_target_address)
-                    )
-                    token_n = await self.is_target_token0_or_token1()
-                    self._is_target_token0_or_token1 = token_n
-                    self._max_retries = max_retries
-                return self
-            except Exception as e:
-                print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
-                sleep(0.05)
-        W3.rotate_rpc_url()
-        return await self.create(token_target_address, max_retries)
+        if max_retries > 0:
+            trials = 0
+            n_trials = 3
+            while trials < n_trials:
+                trials += 1
+                try:
+                    self._token_target_address = token_target_address
+                    if token_target_address != self._token_base_address:
+                        factory = self.w3_provider.w3_provider_archival.eth.contract(
+                            address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
+                        )
+                        pair_address = await factory.functions.getPair(
+                            self._token_base_address, token_target_address
+                        ).call()
+                        if pair_address == NULL_ADDRESS:
+                            print(
+                                f"Pair address is null for the pool of USDC vs {token_target_address}"
+                            )
+                            self.rotate_factory()
+                            return await self.create(
+                                token_target_address, max_retries - n_trials
+                            )
+                        pair_contract = (
+                            self.w3_provider.w3_provider_archival.eth.contract(
+                                address=pair_address, abi=UNISWAP_V2_PAIR_ABI
+                            )
+                        )
+                        self._pair = pair_contract
+                        self._token_base_decimals = (
+                            10
+                            ** await self.get_decimals_from_token(
+                                self._token_base_address
+                            )
+                        )
+                        self._token_target_decimals = (
+                            10
+                            ** await self.get_decimals_from_token(token_target_address)
+                        )
+                        token_n = await self.is_target_token0_or_token1()
+                        self._is_target_token0_or_token1 = token_n
+                        self._max_retries = max_retries
+                    return self
+                except Exception as e:
+                    print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
+                    sleep(0.05)
+            W3.rotate_rpc_url()
+            return await self.create(token_target_address, max_retries - n_trials)
+        else:
+            return self
 
     async def is_target_token0_or_token1(self):
         if await self._pair.functions.token0().call() == self._token_target_address:
@@ -152,6 +174,13 @@ async def safe_get_price(pricer, block, max_concurrency_semaphore):
         return await pricer.get_price_at_block(block)
 
 
+async def get_decimal(token_address, chain=POLYGON_CHAIN):
+    print(f"Requesting decimals for {token_address}")
+    pricer = UniswapPricer(W3, chain)
+    decimal = await pricer.get_decimals_from_token(token_address)
+    return decimal
+
+
 async def get_uniswap_historical_prices(
     target_blocks,
     token_address,
@@ -159,6 +188,10 @@ async def get_uniswap_historical_prices(
     max_concurrency=10,
     block_batch_size=1024,
 ):
+    """
+
+    :return: pd.DataFrame, with columns = [BLOCK_KEY, PRICE_KEY]
+    """
     target_blocks = [int(b) for b in target_blocks]
     print(f"Requesting prices for {token_address} for blocks={target_blocks}")
     if len(target_blocks) > 1:
@@ -184,7 +217,8 @@ async def get_uniswap_historical_prices(
         prices = pd.DataFrame(
             list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
         )
-        prices = prices.loc[prices[PRICE_KEY] > 0]
+        if len(prices) > 0:
+            prices = prices.loc[prices[PRICE_KEY] > 0]
         prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
         prices = prices.sort_values(by=[BLOCK_KEY])
         return prices
