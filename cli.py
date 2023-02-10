@@ -55,10 +55,7 @@ async def inspect_block_command(block_number: int, rpc: str):
 @coro
 async def compute_profit(block_from: int, block_to: int, save_to_csv: bool = False):
     inspect_db_session = get_inspect_session()
-    profit = await compute_usd_profit(
-        inspect_db_session, block_from, block_to, save_to_csv
-    )
-    print(profit)
+    await compute_usd_profit(inspect_db_session, block_from, block_to, save_to_csv)
 
 
 @cli.command()

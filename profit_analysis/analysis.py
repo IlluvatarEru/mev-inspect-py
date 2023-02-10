@@ -109,7 +109,7 @@ def analyze_profit(profit, save_to_csv=False):
     print(get_top_tokens(profit, chain, 10, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Distribution")
-    print(plot_profit_distribution(profit))
+    print(plot_profit_distribution(profit, chain))
 
 
 async def compute_usd_profit(

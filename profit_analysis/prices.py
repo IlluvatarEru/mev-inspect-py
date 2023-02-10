@@ -193,7 +193,7 @@ async def get_uniswap_historical_prices(
     :return: pd.DataFrame, with columns = [BLOCK_KEY, PRICE_KEY]
     """
     target_blocks = [int(b) for b in target_blocks]
-    print(f"Requesting prices for {token_address} for blocks={target_blocks}")
+    print(f"Requesting prices for {token_address} for {len(target_blocks)} blocks")
     if len(target_blocks) > 1:
         pricer = UniswapPricer(W3, chain)
         # we use USDC as a base token
