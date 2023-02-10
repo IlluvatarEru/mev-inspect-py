@@ -49,7 +49,8 @@ fetch-range = 'cli:fetch_range'
 s3-export = 'cli:s3_export'
 enqueue-s3-export = 'cli:enqueue_s3_export'
 enqueue-many-s3-exports = 'cli:enqueue_many_s3_exports'
-analyze-profit = 'cli:analyze_profit_command'
+compute-usd-profit = 'cli:compute_profit'
+analyze-profits = 'cli:analyze_profits'
 
 [tool.black]
 exclude = '''

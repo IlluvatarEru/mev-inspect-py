@@ -1,4 +1,5 @@
 import os
+import re
 
 import pandas as pd
 from profit_analysis.block_utils import add_block_timestamp
@@ -36,6 +37,52 @@ from profit_analysis.prices import get_decimal, get_uniswap_historical_prices
 
 from mev_inspect.crud.read import read_profit_from_to
 from mev_inspect.web3_provider import W3
+
+USD_PROFIT_FILE_NAME = "usd_profit"
+
+
+def get_max_ind_usd_profit():
+    numbers = []
+    for filename in os.listdir(DATA_PATH):
+        if filename.startswith(USD_PROFIT_FILE_NAME) and filename.endswith(".csv"):
+            match = re.search(r"usd_profit_(\d+)\.csv", filename)
+            if match:
+                number = int(match.group(1))
+                numbers.append(number)
+    if len(numbers) > 0:
+        return max(numbers)
+    else:
+        return -1
+
+
+def read_all_profits(n, save_to_csv=True):
+    total_profit = pd.DataFrame(
+        columns=[
+            BLOCK_KEY,
+            TIMESTAMP_KEY,
+            DATE_KEY,
+            TRANSACTION_HASH_KEY,
+            AMOUNT_RECEIVED_KEY,
+            TOKEN_RECEIVED_KEY,
+            PRICE_RECEIVED_KEY,
+            AMOUNT_DEBT_KEY,
+            TOKEN_DEBT_KEY,
+            PRICE_DEBT_KEY,
+            PROFIT_USD_KEY,
+            CATEGORY_KEY,
+        ]
+    )
+    for i in range(n):
+        profit = pd.read_csv(DATA_PATH + USD_PROFIT_FILE_NAME + f"_{i}.csv")
+        total_profit = pd.concat([total_profit, profit])
+    if save_to_csv:
+        total_profit.to_csv(DATA_PATH + "total_usd_profit.csv", index=False)
+    return total_profit
+
+
+def analyze_all_profits(n, save_to_csv=True):
+    total_profit = read_all_profits(n)
+    analyze_profit(total_profit, save_to_csv)
 
 
 def analyze_profit(profit, save_to_csv=False):
@@ -255,7 +302,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         TIMESTAMP_KEY
     ].dt.normalize()
     if save_to_csv:
-        profit_with_price_tokens.to_csv(DATA_PATH + "usd_profit.csv", index=False)
+        ind = get_max_ind_usd_profit() + 1
+        profit_with_price_tokens.to_csv(
+            DATA_PATH + USD_PROFIT_FILE_NAME + f"_{ind}.csv", index=False
+        )
         pd.DataFrame(failures.items(), columns=[TOKEN_KEY, "error"]).to_csv(
             DATA_PATH + "analyze_profit_failures.csv", index=False
         )
