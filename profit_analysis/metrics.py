@@ -15,12 +15,13 @@ def hist_data(data, bins=None):
     return hist, bin_edges
 
 
-def plot_profit_distribution(profit: pd.DataFrame):
+def plot_profit_distribution(profit: pd.DataFrame, chain):
     profit = profit[np.isfinite(profit["profit_usd"])]["profit_usd"]
     hist, bin_edges = hist_data(profit)
     plt.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), align="edge")
     plt.xlabel("Profit (USD)")
     plt.ylabel("Frequency")
+    plt.title(f"Frequency of MEV profit on {chain}")
     plt.savefig(DATA_PATH + PROFIT_DISTRIBUTION_FILE_NAME)
     return hist, bin_edges
 
