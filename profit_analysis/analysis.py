@@ -73,7 +73,7 @@ def read_all_profits(n, save_to_csv=True):
         ]
     )
     for i in range(n):
-        profit = pd.read_csv(DATA_PATH + USD_PROFIT_FILE_NAME + f"_{i}.csv")
+        profit = pd.read_csv(f"{DATA_PATH}{USD_PROFIT_FILE_NAME}_{i}.csv")
         total_profit = pd.concat([total_profit, profit])
     if save_to_csv:
         total_profit.to_csv(DATA_PATH + "total_usd_profit.csv", index=False)
