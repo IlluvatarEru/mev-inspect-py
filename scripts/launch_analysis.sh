@@ -28,11 +28,11 @@ do
   ./mev compute-usd-profit $from $to True
 done
 ./mev analyze-profits $reps True
-declare -a file_names=("total_usd_profit.csv" "top_tokens.csv" "analyze_profit_failures.csv" "profit_distribution.png")
-for fname in "${file_names[@]}"
-do
-  kubectl cp $mevInspectPoolId:resources/$fname ${fname/.csv/_$i.csv};
-done
 endDate=$(date +%s)
 endDateFormatted=$(date +"%Y-%m-%d-%H:%M:%S.")$(($endDate))
 echo "Finished analysis of ${nBlocks} blocks on the ${endDateFormatted}. It took $(( (endDate - startDate)/60 )) minutes."
+declare -a file_names=("profit_by_date.csv" "profit_by_block_number.csv" "profit_by_category.csv" "total_usd_profit.csv"  "top_tokens.csv" "profit_distribution.png" "analyze_profit_failures.csv" "addresses_with_nan_cg_ids.csv")
+for fname in "${file_names[@]}"
+do
+  kubectl cp $mevInspectPoolId:resources/$fname $fname;
+done
