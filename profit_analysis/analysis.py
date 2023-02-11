@@ -30,8 +30,8 @@ from profit_analysis.constants import DATA_PATH
 from profit_analysis.metrics import (
     compute_profit_kurtosis,
     compute_profit_skewness,
+    get_all_graphs,
     get_top_tokens,
-    plot_profit_distribution,
 )
 from profit_analysis.prices import get_decimal, get_uniswap_historical_prices
 
@@ -109,7 +109,7 @@ def analyze_profit(profit, save_to_csv=False):
     print(get_top_tokens(profit, chain, 10, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Distribution")
-    print(plot_profit_distribution(profit, chain))
+    get_all_graphs()
 
 
 async def compute_usd_profit(

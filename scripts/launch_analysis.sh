@@ -14,6 +14,7 @@ startDate=$(date +%s)
 startDateFormatted=$(date +"%Y-%m-%d-%H:%M:%S.")$((startDate))
 echo "Starting analysis from block=${blockFrom} for ${nBlocks} blocks on the ${startDateFormatted}"
 echo "${reps}"
+./mev exec alembic upgrade head
 for i in $(seq 0 1 $reps)
 do
   from=$(($blockFrom + $i*$window))
