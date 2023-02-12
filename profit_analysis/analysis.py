@@ -247,7 +247,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_DEBT_KEY]
                 )
-
+                profit_by_received_token[BLOCK_KEY] = profit_by_received_token[
+                    BLOCK_KEY
+                ].astype(int)
+                token_prices[BLOCK_KEY] = token_prices[BLOCK_KEY].astype(int)
                 profit_with_price_token = pd.merge_asof(
                     profit_by_received_token.sort_values(BLOCK_KEY),
                     token_prices.sort_values(BLOCK_KEY),
@@ -260,7 +263,12 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
                         debt_tokens_prices[TIMESTAMP_KEY]
                     )
-
+                    profit_with_price_token[BLOCK_KEY] = profit_with_price_token[
+                        BLOCK_KEY
+                    ].astype(int)
+                    debt_tokens_prices[BLOCK_KEY] = debt_tokens_prices[
+                        BLOCK_KEY
+                    ].astype(int)
                     profit_with_price_token = pd.merge_asof(
                         profit_with_price_token.sort_values(BLOCK_KEY),
                         debt_tokens_prices.sort_values(BLOCK_KEY),
