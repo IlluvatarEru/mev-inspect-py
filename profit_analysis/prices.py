@@ -69,6 +69,7 @@ class UniswapPricer:
         self._factory = self._factories[self._factory_index]
 
     async def create(self, token_target_address, max_retries=24):
+        self._max_retries = max_retries
         if max_retries > 0:
             trials = 0
             n_trials = 3
@@ -109,7 +110,6 @@ class UniswapPricer:
                         )
                         token_n = await self.is_target_token0_or_token1()
                         self._is_target_token0_or_token1 = token_n
-                        self._max_retries = max_retries
                     return self
                 except Exception as e:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")

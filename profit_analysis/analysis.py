@@ -30,8 +30,8 @@ from profit_analysis.constants import DATA_PATH
 from profit_analysis.metrics import (
     compute_profit_kurtosis,
     compute_profit_skewness,
+    get_all_graphs,
     get_top_tokens,
-    plot_profit_distribution,
 )
 from profit_analysis.prices import get_decimal, get_uniswap_historical_prices
 
@@ -109,7 +109,7 @@ def analyze_profit(profit, save_to_csv=False):
     print(get_top_tokens(profit, chain, 10, save_to_csv))
     print("    -------------------------------------------------------------------")
     print("    Profit Distribution")
-    print(plot_profit_distribution(profit, chain))
+    get_all_graphs()
 
 
 async def compute_usd_profit(
@@ -247,7 +247,10 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                 profit_by_received_token[AMOUNT_DEBT_KEY] = pd.to_numeric(
                     profit_by_received_token[AMOUNT_DEBT_KEY]
                 )
-
+                profit_by_received_token[BLOCK_KEY] = profit_by_received_token[
+                    BLOCK_KEY
+                ].astype(int)
+                token_prices[BLOCK_KEY] = token_prices[BLOCK_KEY].astype(int)
                 profit_with_price_token = pd.merge_asof(
                     profit_by_received_token.sort_values(BLOCK_KEY),
                     token_prices.sort_values(BLOCK_KEY),
@@ -260,7 +263,12 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
                         debt_tokens_prices[TIMESTAMP_KEY]
                     )
-
+                    profit_with_price_token[BLOCK_KEY] = profit_with_price_token[
+                        BLOCK_KEY
+                    ].astype(int)
+                    debt_tokens_prices[BLOCK_KEY] = debt_tokens_prices[
+                        BLOCK_KEY
+                    ].astype(int)
                     profit_with_price_token = pd.merge_asof(
                         profit_with_price_token.sort_values(BLOCK_KEY),
                         debt_tokens_prices.sort_values(BLOCK_KEY),
