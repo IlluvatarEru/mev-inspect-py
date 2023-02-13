@@ -6,7 +6,7 @@
 run_analysis () {
   # function to run the analysis
   blockFrom=$1
-  $window=$2
+  window=$2
   i=$3
   from=$(($blockFrom + $i*$window))
   to=$(($blockFrom + ($i+1)*$window))
