@@ -21,10 +21,10 @@ run_analysis () {
 # Input the pool Id of mev-inspect (can also be found on your TILT interface)
 mevInspectPoolId=$(kubectl get pods | sed -n -e '/^mev-inspect-/p' | sed '/^mev-inspect-workers/d' | awk '{print $1}')
 # Input the starting and ending blocks you want to run the profit analysis for
-blockFrom=$((34500000))
-nBlocks=3000
+blockFrom=$((0))
+nBlocks=39000000
 blockTo=$((blockFrom+nBlocks))
-window=$((1000))
+window=$((390000))
 reps=$(((${blockTo}-${blockFrom})/${window}))
 startDate=$(date +%s)
 startDateFormatted=$(date +"%Y-%m-%d-%H:%M:%S.")$((startDate))
