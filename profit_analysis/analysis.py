@@ -108,7 +108,6 @@ def analyze_profit(profit, save_to_csv=False):
     print("    Top 10 tokens profit was taken in")
     print(get_top_tokens(profit, chain, 10, save_to_csv))
     print("    -------------------------------------------------------------------")
-    print("    Profit Distribution")
     get_all_graphs()
 
 
