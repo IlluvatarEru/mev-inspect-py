@@ -290,8 +290,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                         [profit_with_price_tokens, profit_with_price_token]
                     )
                 except Exception as e:
-                    print(f"    Failed for token={token}")
-                    print(e)
+                    print(f"    Failed for token={token}, reason={e}")
                     failures[token] = e
         print("Finished processing all tokens")
         print(f"profit_with_price_tokens=\n{profit_with_price_tokens}")
