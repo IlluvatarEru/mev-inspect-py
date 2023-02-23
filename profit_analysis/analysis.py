@@ -313,6 +313,7 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
             TIMESTAMP_KEY
         ].dt.normalize()
     else:
+
         profit_with_price_tokens = pd.DataFrame(
             columns=[
                 BLOCK_KEY,
@@ -333,6 +334,9 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
         ind = get_max_ind_usd_profit() + 1
         profit_with_price_tokens.to_csv(
             DATA_PATH + USD_PROFIT_FILE_NAME + f"_{ind}.csv", index=False
+        )
+        print(
+            f"Saving usd profit to csv from {profit_with_price_tokens[BLOCK_KEY].min()} to {profit_with_price_tokens[BLOCK_KEY].max()}"
         )
         pd.DataFrame(failures.items(), columns=[TOKEN_KEY, "error"]).to_csv(
             DATA_PATH + "analyze_profit_failures.csv", index=False
