@@ -4,11 +4,13 @@ import os
 import web3
 from web3.eth import AsyncEth
 
+from mev_inspect.chains import OPTIMISM_CHAIN
 from mev_inspect.provider import get_base_provider
 
 
 class Web3Provider:
-    def __init__(self, using_local_node=False):
+    def __init__(self, chain, using_local_node=False):
+        self.chain = chain
         self.using_local_node = using_local_node
         rpc_url = os.environ.get("RPC_URL")
         if not using_local_node:
@@ -97,4 +99,4 @@ def create_web3_archival(web3_rpc_url, request_timeout=300):
     return w3_base_provider
 
 
-W3 = Web3Provider(True)
+W3 = Web3Provider(OPTIMISM_CHAIN, True)

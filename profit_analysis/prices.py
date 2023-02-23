@@ -4,10 +4,10 @@ from time import sleep
 from typing import Union
 
 import pandas as pd
-from profit_analysis.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
 from profit_analysis.column_names import BLOCK_KEY, PRICE_KEY
 from profit_analysis.constants import DATA_PATH
 
+from mev_inspect.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
 from mev_inspect.web3_provider import W3
 
 UNISWAP_V2_PAIR_ABI = json.loads(
