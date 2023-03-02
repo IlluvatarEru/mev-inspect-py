@@ -17,6 +17,7 @@ UNISWAP_V2_FACTORY_ABI = json.loads(
     '[{"inputs":[{"internalType":"address","name":"_feeToSetter","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token0","type":"address"},{"indexed":true,"internalType":"address","name":"token1","type":"address"},{"indexed":false,"internalType":"address","name":"pair","type":"address"},{"indexed":false,"internalType":"uint256","name":"","type":"uint256"}],"name":"PairCreated","type":"event"},{"constant":true,"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allPairs","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"allPairsLength","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"tokenA","type":"address"},{"internalType":"address","name":"tokenB","type":"address"}],"name":"createPair","outputs":[{"internalType":"address","name":"pair","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"feeTo","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"feeToSetter","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"getPair","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_feeTo","type":"address"}],"name":"setFeeTo","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_feeToSetter","type":"address"}],"name":"setFeeToSetter","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]'
 )
 UNISWAP_V3_FACTORY_ABI = '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint24","name":"fee","type":"uint24"},{"indexed":true,"internalType":"int24","name":"tickSpacing","type":"int24"}],"name":"FeeAmountEnabled","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnerChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token0","type":"address"},{"indexed":true,"internalType":"address","name":"token1","type":"address"},{"indexed":true,"internalType":"uint24","name":"fee","type":"uint24"},{"indexed":false,"internalType":"int24","name":"tickSpacing","type":"int24"},{"indexed":false,"internalType":"address","name":"pool","type":"address"}],"name":"PoolCreated","type":"event"},{"inputs":[{"internalType":"address","name":"tokenA","type":"address"},{"internalType":"address","name":"tokenB","type":"address"},{"internalType":"uint24","name":"fee","type":"uint24"}],"name":"createPool","outputs":[{"internalType":"address","name":"pool","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint24","name":"fee","type":"uint24"},{"internalType":"int24","name":"tickSpacing","type":"int24"}],"name":"enableFeeAmount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint24","name":"","type":"uint24"}],"name":"feeAmountTickSpacing","outputs":[{"internalType":"int24","name":"","type":"int24"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint24","name":"","type":"uint24"}],"name":"getPool","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"parameters","outputs":[{"internalType":"address","name":"factory","type":"address"},{"internalType":"address","name":"token0","type":"address"},{"internalType":"address","name":"token1","type":"address"},{"internalType":"uint24","name":"fee","type":"uint24"},{"internalType":"int24","name":"tickSpacing","type":"int24"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_owner","type":"address"}],"name":"setOwner","outputs":[],"stateMutability":"nonpayable","type":"function"}]'
+UNISWAP_V3_PAIR_ABI = '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"int24","name":"tickLower","type":"int24"},{"indexed":true,"internalType":"int24","name":"tickUpper","type":"int24"},{"indexed":false,"internalType":"uint128","name":"amount","type":"uint128"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"}],"name":"Burn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"address","name":"recipient","type":"address"},{"indexed":true,"internalType":"int24","name":"tickLower","type":"int24"},{"indexed":true,"internalType":"int24","name":"tickUpper","type":"int24"},{"indexed":false,"internalType":"uint128","name":"amount0","type":"uint128"},{"indexed":false,"internalType":"uint128","name":"amount1","type":"uint128"}],"name":"Collect","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":false,"internalType":"uint128","name":"amount0","type":"uint128"},{"indexed":false,"internalType":"uint128","name":"amount1","type":"uint128"}],"name":"CollectProtocol","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"paid0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"paid1","type":"uint256"}],"name":"Flash","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint16","name":"observationCardinalityNextOld","type":"uint16"},{"indexed":false,"internalType":"uint16","name":"observationCardinalityNextNew","type":"uint16"}],"name":"IncreaseObservationCardinalityNext","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint160","name":"sqrtPriceX96","type":"uint160"},{"indexed":false,"internalType":"int24","name":"tick","type":"int24"}],"name":"Initialize","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"int24","name":"tickLower","type":"int24"},{"indexed":true,"internalType":"int24","name":"tickUpper","type":"int24"},{"indexed":false,"internalType":"uint128","name":"amount","type":"uint128"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"}],"name":"Mint","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"feeProtocol0Old","type":"uint8"},{"indexed":false,"internalType":"uint8","name":"feeProtocol1Old","type":"uint8"},{"indexed":false,"internalType":"uint8","name":"feeProtocol0New","type":"uint8"},{"indexed":false,"internalType":"uint8","name":"feeProtocol1New","type":"uint8"}],"name":"SetFeeProtocol","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"recipient","type":"address"},{"indexed":false,"internalType":"int256","name":"amount0","type":"int256"},{"indexed":false,"internalType":"int256","name":"amount1","type":"int256"},{"indexed":false,"internalType":"uint160","name":"sqrtPriceX96","type":"uint160"},{"indexed":false,"internalType":"uint128","name":"liquidity","type":"uint128"},{"indexed":false,"internalType":"int24","name":"tick","type":"int24"}],"name":"Swap","type":"event"},{"inputs":[{"internalType":"int24","name":"tickLower","type":"int24"},{"internalType":"int24","name":"tickUpper","type":"int24"},{"internalType":"uint128","name":"amount","type":"uint128"}],"name":"burn","outputs":[{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"int24","name":"tickLower","type":"int24"},{"internalType":"int24","name":"tickUpper","type":"int24"},{"internalType":"uint128","name":"amount0Requested","type":"uint128"},{"internalType":"uint128","name":"amount1Requested","type":"uint128"}],"name":"collect","outputs":[{"internalType":"uint128","name":"amount0","type":"uint128"},{"internalType":"uint128","name":"amount1","type":"uint128"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint128","name":"amount0Requested","type":"uint128"},{"internalType":"uint128","name":"amount1Requested","type":"uint128"}],"name":"collectProtocol","outputs":[{"internalType":"uint128","name":"amount0","type":"uint128"},{"internalType":"uint128","name":"amount1","type":"uint128"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"factory","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"fee","outputs":[{"internalType":"uint24","name":"","type":"uint24"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feeGrowthGlobal0X128","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feeGrowthGlobal1X128","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"flash","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint16","name":"observationCardinalityNext","type":"uint16"}],"name":"increaseObservationCardinalityNext","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint160","name":"sqrtPriceX96","type":"uint160"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"liquidity","outputs":[{"internalType":"uint128","name":"","type":"uint128"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"maxLiquidityPerTick","outputs":[{"internalType":"uint128","name":"","type":"uint128"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"int24","name":"tickLower","type":"int24"},{"internalType":"int24","name":"tickUpper","type":"int24"},{"internalType":"uint128","name":"amount","type":"uint128"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"mint","outputs":[{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"observations","outputs":[{"internalType":"uint32","name":"blockTimestamp","type":"uint32"},{"internalType":"int56","name":"tickCumulative","type":"int56"},{"internalType":"uint160","name":"secondsPerLiquidityCumulativeX128","type":"uint160"},{"internalType":"bool","name":"initialized","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint32[]","name":"secondsAgos","type":"uint32[]"}],"name":"observe","outputs":[{"internalType":"int56[]","name":"tickCumulatives","type":"int56[]"},{"internalType":"uint160[]","name":"secondsPerLiquidityCumulativeX128s","type":"uint160[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"positions","outputs":[{"internalType":"uint128","name":"liquidity","type":"uint128"},{"internalType":"uint256","name":"feeGrowthInside0LastX128","type":"uint256"},{"internalType":"uint256","name":"feeGrowthInside1LastX128","type":"uint256"},{"internalType":"uint128","name":"tokensOwed0","type":"uint128"},{"internalType":"uint128","name":"tokensOwed1","type":"uint128"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"protocolFees","outputs":[{"internalType":"uint128","name":"token0","type":"uint128"},{"internalType":"uint128","name":"token1","type":"uint128"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint8","name":"feeProtocol0","type":"uint8"},{"internalType":"uint8","name":"feeProtocol1","type":"uint8"}],"name":"setFeeProtocol","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"slot0","outputs":[{"internalType":"uint160","name":"sqrtPriceX96","type":"uint160"},{"internalType":"int24","name":"tick","type":"int24"},{"internalType":"uint16","name":"observationIndex","type":"uint16"},{"internalType":"uint16","name":"observationCardinality","type":"uint16"},{"internalType":"uint16","name":"observationCardinalityNext","type":"uint16"},{"internalType":"uint8","name":"feeProtocol","type":"uint8"},{"internalType":"bool","name":"unlocked","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"int24","name":"tickLower","type":"int24"},{"internalType":"int24","name":"tickUpper","type":"int24"}],"name":"snapshotCumulativesInside","outputs":[{"internalType":"int56","name":"tickCumulativeInside","type":"int56"},{"internalType":"uint160","name":"secondsPerLiquidityInsideX128","type":"uint160"},{"internalType":"uint32","name":"secondsInside","type":"uint32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"bool","name":"zeroForOne","type":"bool"},{"internalType":"int256","name":"amountSpecified","type":"int256"},{"internalType":"uint160","name":"sqrtPriceLimitX96","type":"uint160"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"swap","outputs":[{"internalType":"int256","name":"amount0","type":"int256"},{"internalType":"int256","name":"amount1","type":"int256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"int16","name":"","type":"int16"}],"name":"tickBitmap","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tickSpacing","outputs":[{"internalType":"int24","name":"","type":"int24"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"int24","name":"","type":"int24"}],"name":"ticks","outputs":[{"internalType":"uint128","name":"liquidityGross","type":"uint128"},{"internalType":"int128","name":"liquidityNet","type":"int128"},{"internalType":"uint256","name":"feeGrowthOutside0X128","type":"uint256"},{"internalType":"uint256","name":"feeGrowthOutside1X128","type":"uint256"},{"internalType":"int56","name":"tickCumulativeOutside","type":"int56"},{"internalType":"uint160","name":"secondsPerLiquidityOutsideX128","type":"uint160"},{"internalType":"uint32","name":"secondsOutside","type":"uint32"},{"internalType":"bool","name":"initialized","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"token1","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}]'
 
 ERC20_ABI = json.loads(
     '[ {"constant": true, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "payable": false, "stateMutability": "view", "type": "function"}]'
@@ -42,8 +43,8 @@ def determine_base_token(chain):
 def read_factories(chain):
     factories = pd.read_csv(DATA_PATH + "factories.csv")
     factories = factories.loc[factories["chain"] == chain]
-    factories_addresses = factories['factory'].values
-    dexes = factories['dex'].values
+    factories_addresses = factories["factory"].values
+    dexes = factories["dex"].values
     return factories_addresses, dexes
 
 
@@ -58,7 +59,8 @@ class DEXPricer:
         self._factory_index = 0
         self._factory = self._factories[self._factory_index]
         self._dex = self._dexes[self._factory_index]
-        self._factory_abi = self.set_factory_abi()
+        self._factory_abi = self.get_factory_abi()
+        self._pair_abi = self.get_pair_abi()
         self._pair = None
         self._token_base_address = determine_base_token(chain)
         self._token_target_address = None
@@ -80,9 +82,18 @@ class DEXPricer:
         self._factory_index = (self._factory_index + 1) % len(self._factories)
         self._factory = self._factories[self._factory_index]
         self._dex = self._dexes[self._factory_index]
-        self.set_factory_abi()
+        self._factory_abi = self.get_factory_abi()
+        self._pair_abi = self.get_pair_abi()
 
-    def set_factory_abi(self):
+    def get_pair_abi(self):
+        if self._dex in UNISWAP_V2_DEXES:
+            return UNISWAP_V2_PAIR_ABI
+        elif self._dex in UNISWAP_V3_DEXES:
+            return UNISWAP_V3_PAIR_ABI
+        else:
+            raise Exception(f"Factory {self._factory} does not have an associated ABI")
+
+    def get_factory_abi(self):
         if self._dex in UNISWAP_V2_DEXES:
             return UNISWAP_V2_FACTORY_ABI
         elif self._dex in UNISWAP_V3_DEXES:
@@ -103,9 +114,9 @@ class DEXPricer:
                         factory = self.w3_provider.w3_provider_archival.eth.contract(
                             address=self._factory, abi=self._factory_abi
                         )
-                        pair_address = await factory.functions.getPair(
-                            self._token_base_address, token_target_address
-                        ).call()
+                        pair_address = await self.get_pair_address(
+                            factory, token_target_address
+                        )
                         if pair_address == NULL_ADDRESS:
                             print(
                                 f"Pair address is null for the pool of USDC vs {token_target_address}"
@@ -116,24 +127,21 @@ class DEXPricer:
                             return await self.create(
                                 token_target_address, max_retries - n_trials
                             )
-                        pair_contract = (
-                            self.w3_provider.w3_provider_archival.eth.contract(
-                                address=pair_address, abi=UNISWAP_V2_PAIR_ABI
+                        self._pair = self.w3_provider.w3_provider_archival.eth.contract(
+                            address=pair_address, abi=self._pair_abi
+                        )
+                        self._token_base_decimals = (
+                            10
+                            ** await self.get_decimals_from_token(
+                                self._token_base_address
                             )
                         )
-                        self._pair = pair_contract
-                        self._token_base_decimals = (
-                                10
-                                ** await self.get_decimals_from_token(
-                            self._token_base_address
-                        )
-                        )
                         self._token_target_decimals = (
-                                10
-                                ** await self.get_decimals_from_token(token_target_address)
+                            10
+                            ** await self.get_decimals_from_token(token_target_address)
                         )
-                        target_token = await self.is_target_token0_or_token1()
-                        self._is_target_token0_or_token1 = target_token
+                        target_token_index = await self.is_target_token0_or_token1()
+                        self._is_target_token0_or_token1 = target_token_index
                     return self
                 except Exception as e:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
@@ -142,6 +150,19 @@ class DEXPricer:
             return await self.create(token_target_address, max_retries - n_trials)
         else:
             return self
+
+    async def get_pair_address(self, factory, token_target_address):
+        if self._dex in UNISWAP_V2_DEXES:
+            pair_address = await factory.functions.getPair(
+                self._token_base_address, token_target_address
+            ).call()
+        elif self._dex in UNISWAP_V3_DEXES:
+            pair_address = await factory.functions.getPool(
+                self._token_base_address, token_target_address, 3000
+            ).call()
+        else:
+            raise Exception(f"Factory {self._factory} does not have an associated ABI")
+        return pair_address
 
     async def is_target_token0_or_token1(self):
         if await self._pair.functions.token0().call() == self._token_target_address:
@@ -155,16 +176,62 @@ class DEXPricer:
 
     async def get_price_at_block(self, block_number: Union[int, float]):
         if self._factory in UNISWAP_V2_DEXES:
-            return self.get_price_at_block_uniswapv2(block_number)
+            return self.get_price_at_block_uniswap_v2(block_number)
         elif self._factory in UNISWAP_V3_DEXES:
-            return self.get_price_at_block_uniswapv3(block_number)
+            return self.get_price_at_block_uniswap_v3(block_number)
         else:
             raise Exception(f"Factory {self._factory} is not supported.")
 
-    async def get_price_at_block_uniswapv3(self, block_number: Union[int, float]):
-        return block_number
+    async def get_price_at_block_uniswap_v3(self, block_number: Union[int, float]):
+        trials = 0
+        n_trials = 3
+        if self._max_retries > 0:
+            while trials < n_trials:
+                trials += 1
+                try:
+                    if self._token_target_address == self._token_base_address:
+                        price = 1.0
+                    else:
+                        (
+                            sqrt_price_x96,
+                            _,
+                            _,
+                            _,
+                            _,
+                            _,
+                            _,
+                        ) = await self._pair.functions.slot0().call()
+                        square = sqrt_price_x96 * sqrt_price_x96
+                        output = square * 10**18 // (2 ** (96 * 2))
+                        if self._is_target_token0_or_token1 == 0:
+                            price = output / (10**self._token_base_decimals)
+                        else:
+                            price = (
+                                (1 / output)
+                                * (10**18)
+                                * (
+                                    10
+                                    ** (
+                                        self._token_target_decimals
+                                        - self._token_base_decimals
+                                    )
+                                )
+                            )
+                    price = float(price)
+                    self.block_to_price[block_number] = price
+                    return price
+                except Exception as e:
+                    print(
+                        f"Error ({trials}/{n_trials}), retrying get_price_at_block {block_number}  - {e}"
+                    )
+                    sleep(0.05)
+            W3.rotate_rpc_url()
+            await self.create(self._token_target_address, self._max_retries - n_trials)
+            return await self.get_price_at_block(block_number)
+        else:
+            return 0.0
 
-    async def get_price_at_block_uniswapv2(self, block_number: Union[int, float]):
+    async def get_price_at_block_uniswap_v2(self, block_number: Union[int, float]):
         trials = 0
         n_trials = 3
         if self._max_retries > 0:
@@ -184,9 +251,9 @@ class DEXPricer:
                             token_target_reserves = reserves[1]
                             token_base_reserves = reserves[0]
                         price = (
-                                (float(token_base_reserves) / float(token_target_reserves))
-                                * self._token_target_decimals
-                                / self._token_base_decimals
+                            (float(token_base_reserves) / float(token_target_reserves))
+                            * self._token_target_decimals
+                            / self._token_base_decimals
                         )
 
                     price = float(price)
@@ -217,11 +284,11 @@ async def get_decimal(token_address, chain=POLYGON_CHAIN):
 
 
 async def get_uniswap_historical_prices(
-        target_blocks,
-        token_address,
-        chain=POLYGON_CHAIN,
-        max_concurrency=10,
-        block_batch_size=1024,
+    target_blocks,
+    token_address,
+    chain=POLYGON_CHAIN,
+    max_concurrency=10,
+    block_batch_size=1024,
 ):
     """
 
@@ -262,9 +329,9 @@ async def get_uniswap_historical_prices(
         target_block = int(target_blocks[0])
         n_blocks_on_each_side = 10
         target_blocks = (
-                [target_block - i for i in range(n_blocks_on_each_side)]
-                + [target_block]
-                + [target_block + i for i in range(n_blocks_on_each_side)]
+            [target_block - i for i in range(n_blocks_on_each_side)]
+            + [target_block]
+            + [target_block + i for i in range(n_blocks_on_each_side)]
         )
         return await get_uniswap_historical_prices(
             target_blocks,
