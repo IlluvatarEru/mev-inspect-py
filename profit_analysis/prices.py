@@ -41,16 +41,23 @@ def determine_base_token(chain):
 
 def read_factories(chain):
     factories = pd.read_csv(DATA_PATH + "factories.csv")
-    factories = factories.loc[factories["chain"] == chain, "factory"].unique()
-    return factories
+    factories = factories.loc[factories["chain"] == chain]
+    factories_addresses = factories['factory'].values
+    dexes = factories['dex'].values
+    return factories_addresses, dexes
 
 
 class DEXPricer:
     def __init__(self, w3_provider, chain):
         self.w3_provider = w3_provider
         self._chain = chain
-        self._factories = read_factories(chain)
+        factories_addresses, dexes = read_factories(chain)
+        self._factories = factories_addresses
+        self._dexes = dexes
+        # set index to 0
         self._factory_index = 0
+        self._factory = self._factories[self._factory_index]
+        self._dex = self._dexes[self._factory_index]
         self._factory_abi = self.set_factory_abi()
         self._pair = None
         self._token_base_address = determine_base_token(chain)
@@ -72,12 +79,13 @@ class DEXPricer:
         # TODO: Add more DEXes so we can rotate
         self._factory_index = (self._factory_index + 1) % len(self._factories)
         self._factory = self._factories[self._factory_index]
+        self._dex = self._dexes[self._factory_index]
         self.set_factory_abi()
 
     def set_factory_abi(self):
-        if self._factory in UNISWAP_V2_DEXES:
+        if self._dex in UNISWAP_V2_DEXES:
             return UNISWAP_V2_FACTORY_ABI
-        elif self._factory in UNISWAP_V3_DEXES:
+        elif self._dex in UNISWAP_V3_DEXES:
             return UNISWAP_V3_FACTORY_ABI
         else:
             raise Exception(f"Factory {self._factory} does not have an associated ABI")
@@ -115,14 +123,14 @@ class DEXPricer:
                         )
                         self._pair = pair_contract
                         self._token_base_decimals = (
-                            10
-                            ** await self.get_decimals_from_token(
-                                self._token_base_address
-                            )
+                                10
+                                ** await self.get_decimals_from_token(
+                            self._token_base_address
+                        )
                         )
                         self._token_target_decimals = (
-                            10
-                            ** await self.get_decimals_from_token(token_target_address)
+                                10
+                                ** await self.get_decimals_from_token(token_target_address)
                         )
                         target_token = await self.is_target_token0_or_token1()
                         self._is_target_token0_or_token1 = target_token
@@ -176,9 +184,9 @@ class DEXPricer:
                             token_target_reserves = reserves[1]
                             token_base_reserves = reserves[0]
                         price = (
-                            (float(token_base_reserves) / float(token_target_reserves))
-                            * self._token_target_decimals
-                            / self._token_base_decimals
+                                (float(token_base_reserves) / float(token_target_reserves))
+                                * self._token_target_decimals
+                                / self._token_base_decimals
                         )
 
                     price = float(price)
@@ -209,11 +217,11 @@ async def get_decimal(token_address, chain=POLYGON_CHAIN):
 
 
 async def get_uniswap_historical_prices(
-    target_blocks,
-    token_address,
-    chain=POLYGON_CHAIN,
-    max_concurrency=10,
-    block_batch_size=1024,
+        target_blocks,
+        token_address,
+        chain=POLYGON_CHAIN,
+        max_concurrency=10,
+        block_batch_size=1024,
 ):
     """
 
@@ -254,9 +262,9 @@ async def get_uniswap_historical_prices(
         target_block = int(target_blocks[0])
         n_blocks_on_each_side = 10
         target_blocks = (
-            [target_block - i for i in range(n_blocks_on_each_side)]
-            + [target_block]
-            + [target_block + i for i in range(n_blocks_on_each_side)]
+                [target_block - i for i in range(n_blocks_on_each_side)]
+                + [target_block]
+                + [target_block + i for i in range(n_blocks_on_each_side)]
         )
         return await get_uniswap_historical_prices(
             target_blocks,
