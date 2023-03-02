@@ -16,6 +16,8 @@ UNISWAP_V2_PAIR_ABI = json.loads(
 UNISWAP_V2_FACTORY_ABI = json.loads(
     '[{"inputs":[{"internalType":"address","name":"_feeToSetter","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token0","type":"address"},{"indexed":true,"internalType":"address","name":"token1","type":"address"},{"indexed":false,"internalType":"address","name":"pair","type":"address"},{"indexed":false,"internalType":"uint256","name":"","type":"uint256"}],"name":"PairCreated","type":"event"},{"constant":true,"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allPairs","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"allPairsLength","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"tokenA","type":"address"},{"internalType":"address","name":"tokenB","type":"address"}],"name":"createPair","outputs":[{"internalType":"address","name":"pair","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"feeTo","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"feeToSetter","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"getPair","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_feeTo","type":"address"}],"name":"setFeeTo","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_feeToSetter","type":"address"}],"name":"setFeeToSetter","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]'
 )
+UNISWAP_V3_FACTORY_ABI = '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint24","name":"fee","type":"uint24"},{"indexed":true,"internalType":"int24","name":"tickSpacing","type":"int24"}],"name":"FeeAmountEnabled","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnerChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token0","type":"address"},{"indexed":true,"internalType":"address","name":"token1","type":"address"},{"indexed":true,"internalType":"uint24","name":"fee","type":"uint24"},{"indexed":false,"internalType":"int24","name":"tickSpacing","type":"int24"},{"indexed":false,"internalType":"address","name":"pool","type":"address"}],"name":"PoolCreated","type":"event"},{"inputs":[{"internalType":"address","name":"tokenA","type":"address"},{"internalType":"address","name":"tokenB","type":"address"},{"internalType":"uint24","name":"fee","type":"uint24"}],"name":"createPool","outputs":[{"internalType":"address","name":"pool","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint24","name":"fee","type":"uint24"},{"internalType":"int24","name":"tickSpacing","type":"int24"}],"name":"enableFeeAmount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint24","name":"","type":"uint24"}],"name":"feeAmountTickSpacing","outputs":[{"internalType":"int24","name":"","type":"int24"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint24","name":"","type":"uint24"}],"name":"getPool","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"parameters","outputs":[{"internalType":"address","name":"factory","type":"address"},{"internalType":"address","name":"token0","type":"address"},{"internalType":"address","name":"token1","type":"address"},{"internalType":"uint24","name":"fee","type":"uint24"},{"internalType":"int24","name":"tickSpacing","type":"int24"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_owner","type":"address"}],"name":"setOwner","outputs":[],"stateMutability":"nonpayable","type":"function"}]'
+
 ERC20_ABI = json.loads(
     '[ {"constant": true, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "payable": false, "stateMutability": "view", "type": "function"}]'
 )
@@ -24,6 +26,8 @@ QUICKSWAP_FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
 USDC_TOKEN_ADDRESS_ETHEREUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 USDC_TOKEN_ADDRESS_POLYGON = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
+UNISWAP_V2_DEXES = ["uniswapv2", "quickswap"]
+UNISWAP_V3_DEXES = ["uniswapv3"]
 
 
 def determine_base_token(chain):
@@ -41,13 +45,13 @@ def read_factories(chain):
     return factories
 
 
-class UniswapPricer:
+class DEXPricer:
     def __init__(self, w3_provider, chain):
         self.w3_provider = w3_provider
         self._chain = chain
         self._factories = read_factories(chain)
         self._factory_index = 0
-        self._factory = self._factories[self._factory_index]
+        self._factory_abi = self.set_factory_abi()
         self._pair = None
         self._token_base_address = determine_base_token(chain)
         self._token_target_address = None
@@ -65,8 +69,18 @@ class UniswapPricer:
         return decimals
 
     def rotate_factory(self):
+        # TODO: Add more DEXes so we can rotate
         self._factory_index = (self._factory_index + 1) % len(self._factories)
         self._factory = self._factories[self._factory_index]
+        self.set_factory_abi()
+
+    def set_factory_abi(self):
+        if self._factory in UNISWAP_V2_DEXES:
+            return UNISWAP_V2_FACTORY_ABI
+        elif self._factory in UNISWAP_V3_DEXES:
+            return UNISWAP_V3_FACTORY_ABI
+        else:
+            raise Exception(f"Factory {self._factory} does not have an associated ABI")
 
     async def create(self, token_target_address, max_retries=24):
         self._max_retries = max_retries
@@ -79,7 +93,7 @@ class UniswapPricer:
                     self._token_target_address = token_target_address
                     if token_target_address != self._token_base_address:
                         factory = self.w3_provider.w3_provider_archival.eth.contract(
-                            address=self._factory, abi=UNISWAP_V2_FACTORY_ABI
+                            address=self._factory, abi=self._factory_abi
                         )
                         pair_address = await factory.functions.getPair(
                             self._token_base_address, token_target_address
@@ -88,6 +102,8 @@ class UniswapPricer:
                             print(
                                 f"Pair address is null for the pool of USDC vs {token_target_address}"
                             )
+                            # if there is no pool for this pair on the given factory, try to rotate factories to see if
+                            # another DEX has the pool
                             self.rotate_factory()
                             return await self.create(
                                 token_target_address, max_retries - n_trials
@@ -108,8 +124,8 @@ class UniswapPricer:
                             10
                             ** await self.get_decimals_from_token(token_target_address)
                         )
-                        token_n = await self.is_target_token0_or_token1()
-                        self._is_target_token0_or_token1 = token_n
+                        target_token = await self.is_target_token0_or_token1()
+                        self._is_target_token0_or_token1 = target_token
                     return self
                 except Exception as e:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
@@ -130,6 +146,17 @@ class UniswapPricer:
             )
 
     async def get_price_at_block(self, block_number: Union[int, float]):
+        if self._factory in UNISWAP_V2_DEXES:
+            return self.get_price_at_block_uniswapv2(block_number)
+        elif self._factory in UNISWAP_V3_DEXES:
+            return self.get_price_at_block_uniswapv3(block_number)
+        else:
+            raise Exception(f"Factory {self._factory} is not supported.")
+
+    async def get_price_at_block_uniswapv3(self, block_number: Union[int, float]):
+        return block_number
+
+    async def get_price_at_block_uniswapv2(self, block_number: Union[int, float]):
         trials = 0
         n_trials = 3
         if self._max_retries > 0:
@@ -176,7 +203,7 @@ async def safe_get_price(pricer, block, max_concurrency_semaphore):
 
 async def get_decimal(token_address, chain=POLYGON_CHAIN):
     print(f"Requesting decimals for {token_address}")
-    pricer = UniswapPricer(W3, chain)
+    pricer = DEXPricer(W3, chain)
     decimal = await pricer.get_decimals_from_token(token_address)
     return decimal
 
@@ -195,7 +222,7 @@ async def get_uniswap_historical_prices(
     target_blocks = [int(b) for b in target_blocks]
     print(f"Requesting prices for {token_address} for {len(target_blocks)} blocks")
     if len(target_blocks) > 1:
-        pricer = UniswapPricer(W3, chain)
+        pricer = DEXPricer(W3, chain)
         # we use USDC as a base token
         await pricer.create(token_address)
         tasks = []
