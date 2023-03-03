@@ -190,12 +190,12 @@ class DEXPricer:
             )
 
     async def get_price_at_block(self, block_number: Union[int, float]):
-        if self._factory in UNISWAP_V2_DEXES:
+        if self._dex in UNISWAP_V2_DEXES:
             return self.get_price_at_block_uniswap_v2(block_number)
-        elif self._factory in UNISWAP_V3_DEXES:
+        elif self._dex in UNISWAP_V3_DEXES:
             return self.get_price_at_block_uniswap_v3(block_number)
         else:
-            raise Exception(f"Factory {self._factory} is not supported.")
+            raise Exception(f"DEX {self._dex} is not supported.")
 
     async def get_price_at_block_uniswap_v3(self, block_number: Union[int, float]):
         print(f"DEBUG - get_price_at_block_uniswap_v3")
@@ -320,12 +320,10 @@ async def get_uniswap_historical_prices(
         max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
 
         for start_block_number_index in range(0, len(target_blocks), block_batch_size):
-            print(f"DEBUG - start_block_number_index={start_block_number_index}")
             end_block_number_index = min(
                 len(target_blocks) - 1, start_block_number_index + block_batch_size
             )
             for k in range(end_block_number_index - start_block_number_index):
-                print(f"DEBUG - k={k}")
                 block = target_blocks[start_block_number_index + k]
                 tasks.append(
                     asyncio.ensure_future(
