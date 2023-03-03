@@ -55,8 +55,8 @@ def read_factories(chain):
     factories = factories.loc[factories["chain"] == chain]
     factories_addresses = factories["factory"].values
     dexes = factories["dex"].values
-    print(f"DEBUG - dexes={dexes}")
-    print(f"DEBUG - factories_addresses={factories_addresses}")
+    # print(f"DEBUG - dexes={dexes}")
+    # print(f"DEBUG - factories_addresses={factories_addresses}")
     return factories_addresses, dexes
 
 
@@ -150,7 +150,7 @@ class DEXPricer:
                         )
                         target_token_index = await self.is_target_token0_or_token1()
                         self._is_target_token0_or_token1 = target_token_index
-                        print("DEBUG - Created")
+                        # print("DEBUG - Created")
                     return self
                 except Exception as e:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
@@ -170,7 +170,7 @@ class DEXPricer:
             pair_address = await factory.functions.getPool(
                 self._token_base_address, token_target_address, STANDARD_SWAP_FEE
             ).call()
-            print(f"DEBUG - pair_address={pair_address}")
+            # print(f"DEBUG - pair_address={pair_address}")
         else:
             raise Exception(f"Factory {self._factory} does not have an associated ABI")
         return pair_address
@@ -194,7 +194,7 @@ class DEXPricer:
             raise Exception(f"DEX {self._dex} is not supported.")
 
     async def get_price_at_block_uniswap_v3(self, block_number: Union[int, float]):
-        print(f"DEBUG - get_price_at_block_uniswap_v3")
+        # print(f"DEBUG - get_price_at_block_uniswap_v3")
         trials = 0
         n_trials = 3
         if self._max_retries > 0:
@@ -214,17 +214,17 @@ class DEXPricer:
                             _,
                         ) = await self._pair.functions.slot0().call()
                         square = sqrt_price_x96 * sqrt_price_x96
-                        print(f"DEBUG - square={square}")
+                        # print(f"DEBUG - square={square}")
                         output = square * 10**18 // (2 ** (96 * 2))
-                        print(f"DEBUG - output={output}")
-                        print(f"self._token_base_decimals={self._token_base_decimals}")
-                        print(
-                            f"self._token_target_decimals={self._token_target_decimals}"
-                        )
+                        # print(f"DEBUG - output={output}")
+                        # print(f"self._token_base_decimals={self._token_base_decimals}")
+                        # print(
+                        #    f"self._token_target_decimals={self._token_target_decimals}"
+                        # )
                         if self._is_target_token0_or_token1 == 0:
                             price = output / (10**self._token_base_decimals)
                         else:
-                            print(f"DEBUG - inv")
+                            # print(f"DEBUG - inv")
                             price = (
                                 (1 / output)
                                 * (10**18)
@@ -236,7 +236,7 @@ class DEXPricer:
                                     )
                                 )
                             )
-                        print(f"DEBUG - price={price}")
+                        # print(f"DEBUG - price={price}")
                     price = float(price)
                     self.block_to_price[block_number] = price
                     return price
@@ -336,7 +336,7 @@ async def get_uniswap_historical_prices(
                 )
         await asyncio.gather(*tasks)
         block_to_price = pricer.block_to_price
-        print(f"DEBUG - block_to_price={block_to_price}")
+        # print(f"DEBUG - block_to_price={block_to_price}")
         prices = pd.DataFrame(
             list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
         )
@@ -344,7 +344,7 @@ async def get_uniswap_historical_prices(
             prices = prices.loc[prices[PRICE_KEY] > 0]
         prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
         prices = prices.sort_values(by=[BLOCK_KEY])
-        print(f"DEBUG - prices={prices}")
+        # print(f"DEBUG - prices={prices}")
         return prices
     else:
         # get prices for 10 blocks on each side in case the nodes are out of sync for the target block
