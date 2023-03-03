@@ -191,9 +191,9 @@ class DEXPricer:
 
     async def get_price_at_block(self, block_number: Union[int, float]):
         if self._dex in UNISWAP_V2_DEXES:
-            return self.get_price_at_block_uniswap_v2(block_number)
+            return await self.get_price_at_block_uniswap_v2(block_number)
         elif self._dex in UNISWAP_V3_DEXES:
-            return self.get_price_at_block_uniswap_v3(block_number)
+            return await self.get_price_at_block_uniswap_v3(block_number)
         else:
             raise Exception(f"DEX {self._dex} is not supported.")
 
