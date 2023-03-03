@@ -55,6 +55,8 @@ def read_factories(chain):
     factories = factories.loc[factories["chain"] == chain]
     factories_addresses = factories["factory"].values
     dexes = factories["dex"].values
+    print(f"DEBUG - dexes={dexes}")
+    print(f"DEBUG - factories_addresses={factories_addresses}")
     return factories_addresses, dexes
 
 
@@ -152,6 +154,7 @@ class DEXPricer:
                         )
                         target_token_index = await self.is_target_token0_or_token1()
                         self._is_target_token0_or_token1 = target_token_index
+                        print("DEBUG - Created")
                     return self
                 except Exception as e:
                     print(f"Error ({trials}/{n_trials}), retrying  create  -  {e}")
@@ -167,9 +170,11 @@ class DEXPricer:
                 self._token_base_address, token_target_address
             ).call()
         elif self._dex in UNISWAP_V3_DEXES:
+            # W3.w3_provider.to_checksum_address(self._token_base_address)
             pair_address = await factory.functions.getPool(
                 self._token_base_address, token_target_address, STANDARD_SWAP_FEE
             ).call()
+            print(f"DEBUG - pair_address={pair_address}")
         else:
             raise Exception(f"Factory {self._factory} does not have an associated ABI")
         return pair_address
@@ -193,6 +198,7 @@ class DEXPricer:
             raise Exception(f"Factory {self._factory} is not supported.")
 
     async def get_price_at_block_uniswap_v3(self, block_number: Union[int, float]):
+        print(f"DEBUG - get_price_at_block_uniswap_v3")
         trials = 0
         n_trials = 3
         if self._max_retries > 0:
@@ -314,10 +320,12 @@ async def get_uniswap_historical_prices(
         max_concurrency_semaphore = asyncio.Semaphore(max_concurrency)
 
         for start_block_number_index in range(0, len(target_blocks), block_batch_size):
+            print(f"DEBUG - start_block_number_index={start_block_number_index}")
             end_block_number_index = min(
                 len(target_blocks) - 1, start_block_number_index + block_batch_size
             )
             for k in range(end_block_number_index - start_block_number_index):
+                print(f"DEBUG - k={k}")
                 block = target_blocks[start_block_number_index + k]
                 tasks.append(
                     asyncio.ensure_future(
@@ -326,6 +334,7 @@ async def get_uniswap_historical_prices(
                 )
         await asyncio.gather(*tasks)
         block_to_price = pricer.block_to_price
+        print(f"DEBUG - block_to_price={block_to_price}")
         prices = pd.DataFrame(
             list(block_to_price.items()), columns=[BLOCK_KEY, PRICE_KEY]
         )
@@ -333,6 +342,7 @@ async def get_uniswap_historical_prices(
             prices = prices.loc[prices[PRICE_KEY] > 0]
         prices[BLOCK_KEY] = pd.to_numeric(prices[BLOCK_KEY], downcast="integer")
         prices = prices.sort_values(by=[BLOCK_KEY])
+        print(f"DEBUG - prices={prices}")
         return prices
     else:
         # get prices for 10 blocks on each side in case the nodes are out of sync for the target block
