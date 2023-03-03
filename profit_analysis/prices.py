@@ -7,7 +7,12 @@ import pandas as pd
 from profit_analysis.column_names import BLOCK_KEY, PRICE_KEY
 from profit_analysis.constants import DATA_PATH
 
-from mev_inspect.chains import ETHEREUM_CHAIN, POLYGON_CHAIN
+from mev_inspect.chains import (
+    ARBITRUM_CHAIN,
+    ETHEREUM_CHAIN,
+    OPTIMISM_CHAIN,
+    POLYGON_CHAIN,
+)
 from mev_inspect.web3_provider import W3
 
 UNISWAP_V2_PAIR_ABI = json.loads(
@@ -26,9 +31,12 @@ UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 QUICKSWAP_FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
 USDC_TOKEN_ADDRESS_ETHEREUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 USDC_TOKEN_ADDRESS_POLYGON = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+USDC_TOKEN_ADDRESS_ARBITRUM = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+USDC_TOKEN_ADDRESS_OPTIMISM = "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 UNISWAP_V2_DEXES = ["uniswapv2", "quickswap"]
 UNISWAP_V3_DEXES = ["uniswapv3"]
+STANDARD_SWAP_FEE = 3000
 
 
 def determine_base_token(chain):
@@ -36,6 +44,8 @@ def determine_base_token(chain):
     switcher = {
         ETHEREUM_CHAIN: USDC_TOKEN_ADDRESS_ETHEREUM,
         POLYGON_CHAIN: USDC_TOKEN_ADDRESS_POLYGON,
+        ARBITRUM_CHAIN: USDC_TOKEN_ADDRESS_ARBITRUM,
+        OPTIMISM_CHAIN: USDC_TOKEN_ADDRESS_OPTIMISM,
     }
     return switcher.get(chain, f"Invalid chain@ {chain}")
 
@@ -158,7 +168,7 @@ class DEXPricer:
             ).call()
         elif self._dex in UNISWAP_V3_DEXES:
             pair_address = await factory.functions.getPool(
-                self._token_base_address, token_target_address, 3000
+                self._token_base_address, token_target_address, STANDARD_SWAP_FEE
             ).call()
         else:
             raise Exception(f"Factory {self._factory} does not have an associated ABI")
