@@ -221,9 +221,14 @@ class DEXPricer:
                         print(f"DEBUG - square={square}")
                         output = square * 10**18 // (2 ** (96 * 2))
                         print(f"DEBUG - output={output}")
+                        print(f"self._token_base_decimals={self._token_base_decimals}")
+                        print(
+                            f"self._token_target_decimals={self._token_target_decimals}"
+                        )
                         if self._is_target_token0_or_token1 == 0:
                             price = output / (10**self._token_base_decimals)
                         else:
+                            print(f"DEBUG - inv")
                             price = (
                                 (1 / output)
                                 * (10**18)
