@@ -142,15 +142,11 @@ class DEXPricer:
                         self._pair = self.w3_provider.w3_provider_archival.eth.contract(
                             address=pair_address, abi=self._pair_abi
                         )
-                        self._token_base_decimals = (
-                            10
-                            ** await self.get_decimals_from_token(
-                                self._token_base_address
-                            )
+                        self._token_base_decimals = await self.get_decimals_from_token(
+                            self._token_base_address
                         )
                         self._token_target_decimals = (
-                            10
-                            ** await self.get_decimals_from_token(token_target_address)
+                            await self.get_decimals_from_token(token_target_address)
                         )
                         target_token_index = await self.is_target_token0_or_token1()
                         self._is_target_token0_or_token1 = target_token_index
@@ -276,8 +272,8 @@ class DEXPricer:
                             token_base_reserves = reserves[0]
                         price = (
                             (float(token_base_reserves) / float(token_target_reserves))
-                            * self._token_target_decimals
-                            / self._token_base_decimals
+                            * (10**self._token_target_decimals)
+                            / (10**self._token_base_decimals)
                         )
 
                     price = float(price)
