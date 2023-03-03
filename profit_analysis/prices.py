@@ -218,7 +218,9 @@ class DEXPricer:
                             _,
                         ) = await self._pair.functions.slot0().call()
                         square = sqrt_price_x96 * sqrt_price_x96
+                        print(f"DEBUG - square={square}")
                         output = square * 10**18 // (2 ** (96 * 2))
+                        print(f"DEBUG - output={output}")
                         if self._is_target_token0_or_token1 == 0:
                             price = output / (10**self._token_base_decimals)
                         else:
@@ -233,6 +235,7 @@ class DEXPricer:
                                     )
                                 )
                             )
+                        print(f"DEBUG - price={price}")
                     price = float(price)
                     self.block_to_price[block_number] = price
                     return price
