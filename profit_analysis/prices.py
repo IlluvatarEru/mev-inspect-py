@@ -212,10 +212,16 @@ class DEXPricer:
                             _,
                             _,
                             _,
-                        ) = await self._pair.functions.slot0().call()
+                        ) = await self._pair.functions.slot0().call(
+                            block_identifier=int(block_number)
+                        )
                         square = sqrt_price_x96 * sqrt_price_x96
                         # print(f"DEBUG - square={square}")
-                        output = square * 10**18 // (2 ** (96 * 2))
+                        output = (
+                            square
+                            * (10**self._token_target_decimals)
+                            // (2 ** (96 * 2))
+                        )
                         # print(f"DEBUG - output={output}")
                         # print(f"self._token_base_decimals={self._token_base_decimals}")
                         # print(
