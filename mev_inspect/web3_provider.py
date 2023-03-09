@@ -4,7 +4,7 @@ import os
 import web3
 from web3.eth import AsyncEth
 
-from mev_inspect.chains import OPTIMISM_CHAIN
+from mev_inspect.chains import ARBITRUM_CHAIN
 from mev_inspect.provider import get_base_provider
 
 
@@ -99,4 +99,4 @@ def create_web3_archival(web3_rpc_url, request_timeout=300):
     return w3_base_provider
 
 
-W3 = Web3Provider(OPTIMISM_CHAIN, True)
+W3 = Web3Provider(ARBITRUM_CHAIN, True)
