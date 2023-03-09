@@ -34,3 +34,7 @@ cache
 
 # generated pngs
 *.png
+
+# jupyter notebooks
+.ipynb*
+*.ipynb

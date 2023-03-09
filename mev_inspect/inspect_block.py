@@ -14,7 +14,7 @@ from mev_inspect.schemas.total_profits import TotalProfits
 
 logger = logging.getLogger(__name__)
 
-TRAILING_ZEROS = "000000000000000000000000"
+TRAILING_ZEROS = "0x000000000000000000000000"
 
 
 async def inspect_block(
@@ -104,7 +104,9 @@ def get_checksum_address(token):
     """
     tries to return the checksum of address, if it fails just return the address
     """
-    token = str(token).replace(TRAILING_ZEROS, "")
+    token = str(token)
+    if len(token) > 42:
+        token = token.replace(TRAILING_ZEROS, "0x")
     try:
         token = Web3.to_checksum_address(token)
     except:

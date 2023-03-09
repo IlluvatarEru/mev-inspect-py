@@ -3,12 +3,6 @@ import re
 
 import pandas as pd
 from profit_analysis.block_utils import add_block_timestamp
-from profit_analysis.chains import (
-    ARBITRUM_CHAIN,
-    ETHEREUM_CHAIN,
-    OPTIMISM_CHAIN,
-    POLYGON_CHAIN,
-)
 from profit_analysis.column_names import (
     AMOUNT_DEBT_KEY,
     AMOUNT_RECEIVED_KEY,
@@ -35,6 +29,12 @@ from profit_analysis.metrics import (
 )
 from profit_analysis.prices import get_decimal, get_uniswap_historical_prices
 
+from mev_inspect.chains import (
+    ARBITRUM_CHAIN,
+    ETHEREUM_CHAIN,
+    OPTIMISM_CHAIN,
+    POLYGON_CHAIN,
+)
 from mev_inspect.crud.read import read_profit_from_to
 from mev_inspect.web3_provider import W3
 
@@ -381,4 +381,8 @@ def get_chain_from_url(url):
     elif "opti" in url:
         return OPTIMISM_CHAIN
     else:
-        raise Exception(f"Could not determine blockchain from url: {url}")
+        chain = W3.chain
+        if chain is None:
+            raise Exception(f"Could not determine blockchain from url: {url}")
+        else:
+            return chain
