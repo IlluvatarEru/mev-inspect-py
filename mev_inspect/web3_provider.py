@@ -60,6 +60,12 @@ class Web3Provider:
             self.w3_provider_archival = create_web3_archival(
                 self.rpc_endpoint_base_url + self.current_rpc
             )
+        else:
+            # if we use a local node, just try to reconnect
+            rpc_url = os.environ.get("RPC_URL")
+            self.w3_provider = create_web3(rpc_url)
+            self.w3_provider_async = create_web3_async(rpc_url)
+            self.w3_provider_archival = create_web3_archival(rpc_url)
 
 
 def split_rpc_url(rpc_url):
