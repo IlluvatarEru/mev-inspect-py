@@ -251,7 +251,7 @@ class DEXPricer:
                         f"Error ({trials}/{n_trials}), retrying get_price_at_block {block_number}  - {e}"
                     )
             W3.rotate_rpc_url()
-            await self.create(self._token_target_address, max_retries - n_trials)
+            await self.create(self._token_target_address)
             return await self.get_price_at_block(block_number, max_retries - 1)
         else:
             return 0.0
@@ -290,7 +290,7 @@ class DEXPricer:
                     )
                     sleep(0.05)
             W3.rotate_rpc_url()
-            await self.create(self._token_target_address, max_retries - n_trials)
+            await self.create(self._token_target_address)
             return await self.get_price_at_block(block_number, max_retries - 1)
         else:
             return 0.0
