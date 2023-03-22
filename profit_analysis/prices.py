@@ -185,19 +185,19 @@ class DEXPricer:
                 f"Target token ({self._token_target_address}) not in contract pair {self._pair}"
             )
 
-    async def get_price_at_block(self, block_number: Union[int, float]):
+    async def get_price_at_block(self, block_number: Union[int, float], max_retries: int):
         if self._dex in UNISWAP_V2_DEXES:
-            return await self.get_price_at_block_uniswap_v2(block_number)
+            return await self.get_price_at_block_uniswap_v2(block_number, max_retries)
         elif self._dex in UNISWAP_V3_DEXES:
-            return await self.get_price_at_block_uniswap_v3(block_number)
+            return await self.get_price_at_block_uniswap_v3(block_number, max_retries)
         else:
             raise Exception(f"DEX {self._dex} is not supported.")
 
-    async def get_price_at_block_uniswap_v3(self, block_number: Union[int, float]):
+    async def get_price_at_block_uniswap_v3(self, block_number: Union[int, float], max_retries: int):
         # print(f"DEBUG - get_price_at_block_uniswap_v3")
         trials = 0
         n_trials = 3
-        if self._max_retries > 0:
+        if max_retries > 0:
             while trials < n_trials:
                 trials += 1
                 try:
@@ -251,15 +251,15 @@ class DEXPricer:
                         f"Error ({trials}/{n_trials}), retrying get_price_at_block {block_number}  - {e}"
                     )
             W3.rotate_rpc_url()
-            await self.create(self._token_target_address, self._max_retries - n_trials)
-            return await self.get_price_at_block(block_number)
+            await self.create(self._token_target_address)
+            return await self.get_price_at_block(block_number, max_retries - 1)
         else:
             return 0.0
 
-    async def get_price_at_block_uniswap_v2(self, block_number: Union[int, float]):
+    async def get_price_at_block_uniswap_v2(self, block_number: Union[int, float], max_retries: int):
         trials = 0
         n_trials = 3
-        if self._max_retries > 0:
+        if max_retries > 0:
             while trials < n_trials:
                 trials += 1
                 try:
@@ -290,15 +290,15 @@ class DEXPricer:
                     )
                     sleep(0.05)
             W3.rotate_rpc_url()
-            await self.create(self._token_target_address, self._max_retries - n_trials)
-            return await self.get_price_at_block(block_number)
+            await self.create(self._token_target_address)
+            return await self.get_price_at_block(block_number, max_retries - 1)
         else:
             return 0.0
 
 
 async def safe_get_price(pricer, block, max_concurrency_semaphore):
     async with max_concurrency_semaphore:
-        return await pricer.get_price_at_block(block)
+        return await pricer.get_price_at_block(block, 1)
 
 
 async def get_decimal(token_address, chain=POLYGON_CHAIN):
