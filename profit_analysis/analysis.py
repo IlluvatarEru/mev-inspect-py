@@ -80,8 +80,11 @@ def read_all_profits(n, save_to_csv=True):
     return total_profit
 
 
-def analyze_all_profits(n, save_to_csv=True):
+def analyze_all_profits(n=get_max_ind_usd_profit(), save_to_csv=True):
+    print("Starting profit analysis", flush=True)
+    print("Starting to read all profits", flush=True)
     total_profit = read_all_profits(n)
+    print("Done reading all profits", flush=True)
     analyze_profit(total_profit, save_to_csv)
 
 
@@ -262,9 +265,6 @@ async def get_usd_profit(profit, chain, save_to_csv=False):
                     )
 
                     if len(debt_tokens_prices) > 0:
-                        debt_tokens_prices[TIMESTAMP_KEY] = pd.to_datetime(
-                            debt_tokens_prices[TIMESTAMP_KEY]
-                        )
                         profit_with_price_token[BLOCK_KEY] = profit_with_price_token[
                             BLOCK_KEY
                         ].astype(int)
