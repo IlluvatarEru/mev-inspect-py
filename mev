@@ -79,7 +79,7 @@ case "$1" in
   analyze-profits)
         reps=$2
         save_to_csv=$3
-        echo "Analyzing profit"
+        echo "Analyzing profit with reps=$reps and save to csv option set to=$save_to_csv"
         kubectl exec -ti deploy/mev-inspect -- \
             poetry run analyze-profits $reps $save_to_csv
 	;;
