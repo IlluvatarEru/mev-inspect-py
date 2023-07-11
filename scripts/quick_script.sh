@@ -1,3 +1,8 @@
+#!/bin/bash
+
+# This script will run the profit analysis using the specified number of files containing the USD profits - the CSV ones.
+# Then, it will copy the analysis results from the Kubernetes cluster to the host machine.
+
 mev_inspect_pool_id=$(kubectl get pods | sed -n -e '/^mev-inspect-/p' | sed '/^mev-inspect-workers/d' | awk '{print $1}')
 
 ./mev analyze-profits 194 True
