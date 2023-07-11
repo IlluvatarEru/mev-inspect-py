@@ -55,7 +55,7 @@ def _get_arbitrages_from_swaps(swaps: List[Swap]) -> List[Arbitrage]:
             continue
 
         unused_ends = [end for end in ends if end not in used_swaps]
-        route = _get_shortest_route(start, unused_ends, swaps)
+        route = _get_shortest_route(start, unused_ends, swaps, 3)
 
         if route is not None:
             start_amount = route[0].token_in_amount

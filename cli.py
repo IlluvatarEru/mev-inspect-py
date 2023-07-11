@@ -63,7 +63,8 @@ async def compute_profit(block_from: int, block_to: int, save_to_csv: bool = Fal
 @click.argument("save_to_csv", type=bool)
 @coro
 async def analyze_profits(reps: int, save_to_csv: bool = False):
-    analyze_all_profits(reps, save_to_csv)
+    print("Analyzing profits...")
+    analyze_all_profits(n=reps, save_to_csv=save_to_csv)
 
 
 @cli.command()
